@@ -1,0 +1,100 @@
+<div class="page-header">
+  <h1>Paramètres</h1>
+  <p>Gérez votre profil et votre sécurité</p>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="parametres-grid">
+
+  <!-- PROFIL -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">
+        <span class="material-icons">manage_accounts</span>
+      </div>
+      <div>
+        <h2>Profil Super Admin</h2>
+        <p>Vos informations personnelles</p>
+      </div>
+    </div>
+
+    <div class="readonly-info" *ngIf="profil">
+      <div class="readonly-item">
+        <span class="readonly-label">Login</span>
+        <span class="readonly-value login-badge">{{ profil.login }}</span>
+      </div>
+      <div class="readonly-item">
+        <span class="readonly-label">Membre depuis</span>
+        <span class="readonly-value">{{ profil.dateCreation }}</span>
+      </div>
+    </div>
+
+    <div class="succes" *ngIf="succesProfil">{{ succesProfil }}</div>
+    <div class="erreur" *ngIf="erreurProfil">{{ erreurProfil }}</div>
+
+    <form (ngSubmit)="enregistrerProfil()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="formProfil.prenom" name="prenom"
+                 placeholder="Nafissatou" required />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="formProfil.nom" name="nom"
+                 placeholder="Boye" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="formProfil.email" name="email"
+               placeholder="nafissatou@cardoil.com" />
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="enregistrementProfil">
+        {{ enregistrementProfil ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- SÉCURITÉ -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon securite">
+        <span class="material-icons">lock</span>
+      </div>
+      <div>
+        <h2>Sécurité</h2>
+        <p>Modifiez votre mot de passe</p>
+      </div>
+    </div>
+
+    <div class="succes" *ngIf="succesMdp">{{ succesMdp }}</div>
+    <div class="erreur" *ngIf="erreurMdp">{{ erreurMdp }}</div>
+
+    <form (ngSubmit)="changerMotDePasse()">
+      <div class="form-group">
+        <label>Mot de passe actuel *</label>
+        <input type="password" [(ngModel)]="ancienMotDePasse" name="ancien"
+               placeholder="••••••••" required />
+      </div>
+      <div class="form-group">
+        <label>Nouveau mot de passe *</label>
+        <input type="password" [(ngModel)]="nouveauMotDePasse" name="nouveau"
+               placeholder="Au moins 6 caractères" required />
+      </div>
+      <div class="form-group">
+        <label>Confirmer le nouveau mot de passe *</label>
+        <input type="password" [(ngModel)]="confirmerMotDePasse" name="confirmer"
+               placeholder="Répétez le mot de passe" required />
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="enregistrementMdp">
+        {{ enregistrementMdp ? 'Enregistrement...' : 'Changer le mot de passe' }}
+      </button>
+    </form>
+  </div>
+
+</div>

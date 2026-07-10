@@ -1,0 +1,112 @@
+<div class="page-header">
+  <div>
+    <h1>Gestion des Compagnies</h1>
+    <p>Gérez les compagnies pétrolières de la plateforme</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter une compagnie</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Nom</th>
+        <th>Pays</th>
+        <th>Téléphone</th>
+        <th>Email</th>
+        <th>Stations</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let compagnie of listeCompagnies">
+        <td><span class="code-badge">{{ compagnie.code }}</span></td>
+        <td class="nom-compagnie">{{ compagnie.nom }}</td>
+        <td>
+          <span class="pays-tag" *ngIf="compagnie.pays">
+            {{ compagnie.pays.codeIso }} · {{ compagnie.pays.nom }}
+          </span>
+        </td>
+        <td>{{ compagnie.telephone || '—' }}</td>
+        <td>{{ compagnie.email || '—' }}</td>
+        <td>{{ compagnie.nombreStations }}</td>
+        <td>
+          <span class="statut" [class.actif]="compagnie.actif" [class.inactif]="!compagnie.actif">
+            {{ compagnie.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirEdition(compagnie)" title="Modifier">✏️</button>
+          <button class="btn-icon danger" (click)="supprimer(compagnie)" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="listeCompagnies.length === 0">
+        <td colspan="8" class="empty-cell">Aucune compagnie enregistrée</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier la compagnie' : 'Ajouter une compagnie' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Code *</label>
+          <input type="text" [(ngModel)]="compagnieCourante.code" name="code" placeholder="TOTAL-SN" required />
+        </div>
+        <div class="form-group">
+          <label>Pays *</label>
+          <select [(ngModel)]="compagnieCourante.paysId" name="paysId" required>
+            <option *ngFor="let p of listePays" [ngValue]="p.id">{{ p.codeIso }} — {{ p.nom }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nom de la compagnie *</label>
+        <input type="text" [(ngModel)]="compagnieCourante.nom" name="nom" placeholder="Total Sénégal" required />
+      </div>
+
+      <div class="form-group">
+        <label>Adresse</label>
+        <input type="text" [(ngModel)]="compagnieCourante.adresse" name="adresse" placeholder="Dakar, Plateau" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="text" [(ngModel)]="compagnieCourante.telephone" name="telephone" placeholder="+221338000000" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="compagnieCourante.email" name="email" placeholder="contact@total.sn" />
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="compagnieCourante.actif" name="actif" />
+          <span>Compagnie active</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ modeEdition ? 'Enregistrer' : 'Ajouter' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>

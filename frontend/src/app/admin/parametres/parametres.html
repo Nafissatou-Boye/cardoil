@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1>Paramètres</h1>
+  <p>Gérez le profil de votre compagnie et votre sécurité</p>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="parametres-grid">
+
+  <!-- PROFIL COMPAGNIE -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🏢</div>
+      <div>
+        <h2>Profil de la compagnie</h2>
+        <p>Informations générales de votre entreprise</p>
+      </div>
+    </div>
+
+    <div class="readonly-info" *ngIf="profil">
+      <div class="readonly-item">
+        <span class="readonly-label">Nom</span>
+        <span class="readonly-value">{{ profil.nom }}</span>
+      </div>
+      <div class="readonly-item">
+        <span class="readonly-label">Code</span>
+        <span class="readonly-value code-badge">{{ profil.code }}</span>
+      </div>
+      <div class="readonly-item">
+        <span class="readonly-label">Pays</span>
+        <span class="readonly-value">{{ profil.paysNom }}</span>
+      </div>
+      <div class="readonly-item">
+        <span class="readonly-label">Membre depuis</span>
+        <span class="readonly-value">{{ profil.dateCreation }}</span>
+      </div>
+    </div>
+
+    <div class="info-note">
+      ℹ️ Le nom, le code et le pays sont gérés par l'administrateur de la plateforme.
+    </div>
+
+    <div class="succes" *ngIf="succesProfil">{{ succesProfil }}</div>
+    <div class="erreur" *ngIf="erreurProfil">{{ erreurProfil }}</div>
+
+    <form (ngSubmit)="enregistrerProfil()">
+
+      <div class="form-group">
+        <label>Adresse *</label>
+        <input type="text" [(ngModel)]="formProfil.adresse" name="adresse"
+               placeholder="Dakar, Plateau" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="text" [(ngModel)]="formProfil.telephone" name="telephone"
+                 placeholder="+221338000000" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="formProfil.email" name="email"
+                 placeholder="contact@compagnie.sn" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="enregistrementProfil">
+        {{ enregistrementProfil ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      </button>
+
+    </form>
+  </div>
+
+  <!-- SECURITE -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-icon">🔐</div>
+      <div>
+        <h2>Sécurité</h2>
+        <p>Modifiez votre mot de passe</p>
+      </div>
+    </div>
+
+    <div class="succes" *ngIf="succesMdp">{{ succesMdp }}</div>
+    <div class="erreur" *ngIf="erreurMdp">{{ erreurMdp }}</div>
+
+    <form (ngSubmit)="changerMotDePasse()">
+
+      <div class="form-group">
+        <label>Mot de passe actuel *</label>
+        <input type="password" [(ngModel)]="ancienMotDePasse" name="ancienMotDePasse"
+               placeholder="••••••••" required />
+      </div>
+
+      <div class="form-group">
+        <label>Nouveau mot de passe *</label>
+        <input type="password" [(ngModel)]="nouveauMotDePasse" name="nouveauMotDePasse"
+               placeholder="Au moins 6 caractères" required />
+      </div>
+
+      <div class="form-group">
+        <label>Confirmer le nouveau mot de passe *</label>
+        <input type="password" [(ngModel)]="confirmerMotDePasse" name="confirmerMotDePasse"
+               placeholder="Répétez le mot de passe" required />
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="enregistrementMdp">
+        {{ enregistrementMdp ? 'Enregistrement...' : 'Changer le mot de passe' }}
+      </button>
+
+    </form>
+  </div>
+
+</div>

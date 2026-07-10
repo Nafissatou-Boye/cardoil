@@ -1,0 +1,90 @@
+<div class="login-layout">
+
+  <!-- GAUCHE -->
+  <div class="left-panel">
+    <div class="left-content">
+      <div class="brand">
+        <div class="brand-icon">⛽</div>
+        <span>CardOil</span>
+      </div>
+      <h1>Fuel the future of petroleum management.</h1>
+      <p>Enterprise-grade fuel payment, loyalty programs, and fleet management for the world's leading petroleum companies.</p>
+
+      <div class="features">
+        <div class="feature-item">
+          <span class="feature-icon">🛡️</span>
+          <span>Bank-grade security with multi-factor authentication</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">⚡</span>
+          <span>Real-time transaction processing at scale</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📊</span>
+          <span>Advanced analytics and business intelligence</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong>250+</strong>
+          <span>Companies</span>
+        </div>
+        <div class="stat">
+          <strong>4,800+</strong>
+          <span>Stations</span>
+        </div>
+        <div class="stat">
+          <strong>$2.4B</strong>
+          <span>Processed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DROITE -->
+  <div class="right-panel">
+    <div class="form-container">
+      <h2>Welcome back</h2>
+      <p class="form-subtitle">Sign in to your CardOil dashboard</p>
+
+      <form (ngSubmit)="onSubmit()">
+
+        <div class="form-group">
+          <label>Identifiant</label>
+          <input
+            type="text"
+            [(ngModel)]="login"
+            name="login"
+            placeholder="7 chiffres"
+            maxlength="7"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <label>Mot de passe</label>
+          </div>
+          <input
+            type="password"
+            [(ngModel)]="motDePasse"
+            name="motDePasse"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+        <button type="submit" [disabled]="chargement" class="btn-submit">
+          {{ chargement ? 'Connexion...' : 'Sign in to Dashboard →' }}
+        </button>
+
+      </form>
+
+      <p class="footer-text">Protected by 256-bit SSL encryption</p>
+    </div>
+  </div>
+
+</div>

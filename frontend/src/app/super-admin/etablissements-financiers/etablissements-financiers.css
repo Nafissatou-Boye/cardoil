@@ -1,0 +1,234 @@
+.page { padding: 24px; }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-header h1 { margin: 0 0 4px; font-size: 22px; }
+.subtitle { margin: 0; color: #6b7280; font-size: 14px; }
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.btn-secondaire {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-icone {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  color: #4b5563;
+}
+.btn-icone:hover { background: #f3f4f6; }
+
+.table-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+td.centre { text-align: center; }
+
+.email-secondaire { font-size: 12px; color: #9ca3af; }
+.expiration { font-size: 11px; color: #9ca3af; }
+
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.badge-actif { background: #dcfce7; color: #16a34a; }
+.badge-suspendu { background: #fef3c7; color: #d97706; }
+.badge-inactif { background: #f3f4f6; color: #6b7280; }
+
+.actions { display: flex; gap: 4px; }
+
+.vide { text-align: center; color: #9ca3af; padding: 32px; }
+
+.banniere-erreur {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.chargement { text-align: center; padding: 48px; color: #9ca3af; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90vw;
+}
+
+.modal h2 { margin: 0 0 16px; font-size: 18px; }
+
+.modal form label {
+  display: block;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 14px;
+}
+
+.modal form input,
+.modal form select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-top: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+.modal-cle { text-align: center; }
+.icone-alerte { font-size: 40px; color: #d97706; }
+
+.cle-affichage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0 8px;
+}
+.cle-affichage code { flex: 1; word-break: break-all; font-size: 13px; text-align: left; }
+
+.confirmation-copie { color: #16a34a; font-size: 13px; margin: 0; }
+
+/* --- Liaisons établissement ↔ compagnie --- */
+
+.lien-compagnies {
+  background: none;
+  border: none;
+  color: #1a73e8;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 14px;
+  padding: 0;
+}
+
+.modal-liaisons { width: 640px; max-width: 95vw; text-align: left; }
+
+.modal-liaisons-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.modal-liaisons-header .subtitle { margin: 2px 0 0; }
+
+.table-liaisons { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.table-liaisons th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7280;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.table-liaisons td {
+  padding: 10px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.btn-ajouter-liaison {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
+}
+
+.form-liaison {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+  margin-top: 8px;
+}
+.form-liaison label {
+  display: block;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+.form-liaison select,
+.form-liaison input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-top: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.form-liaison-plafonds {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.cle-affichage code {
+  flex: 1;
+  word-break: break-all;
+  font-size: 13px;
+  text-align: left;
+  user-select: all;  /* 🆕 un seul clic sélectionne tout le texte */
+  cursor: text;       /* 🆕 signale visuellement que c'est sélectionnable */
+}

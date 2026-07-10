@@ -1,0 +1,258 @@
+<div class="page-header">
+  <div>
+    <h1>Entreprises Clientes</h1>
+    <p>Gérez les entreprises partenaires de votre compagnie</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter une entreprise</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="entreprises-grid">
+
+  <div class="entreprise-card" *ngFor="let e of listeEntreprises" [class.inactif]="!e.actif">
+    <div class="card-header">
+      <div class="entreprise-avatar">{{ e.nom.charAt(0) }}</div>
+      <div class="card-info">
+        <h3>{{ e.nom }}</h3>
+        <span class="code-badge">{{ e.code }}</span>
+      </div>
+      <span class="statut-badge" [class.actif]="e.actif" [class.inactif]="!e.actif">
+        {{ e.actif ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+
+    <div class="card-details">
+      <div class="detail-item" *ngIf="e.secteurActivite">
+        <span class="material-icons detail-icon">business_center</span>
+        <span>{{ e.secteurActivite }}</span>
+      </div>
+      <div class="detail-item" *ngIf="e.adresse">
+        <span class="material-icons detail-icon">location_on</span>
+        <span>{{ e.adresse }}</span>
+      </div>
+      <div class="detail-item" *ngIf="e.telephone">
+        <span class="material-icons detail-icon">phone</span>
+        <span>{{ e.telephone }}</span>
+      </div>
+      <div class="detail-item" *ngIf="e.email">
+        <span class="material-icons detail-icon">email</span>
+        <span>{{ e.email }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="material-icons detail-icon">calendar_today</span>
+        <span>Depuis le {{ e.dateCreation }}</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn-action admin" (click)="ouvrirAdmin(e)">
+        <span class="material-icons" style="font-size:0.9rem">manage_accounts</span>
+        Admin
+      </button>
+      <button class="btn-action" (click)="ouvrirEdition(e)">✏️ Modifier</button>
+      <button class="btn-action" [class.warning]="e.actif" [class.success]="!e.actif"
+              (click)="toggleActif(e)">
+        {{ e.actif ? '⏸️ Désactiver' : '▶️ Activer' }}
+      </button>
+      <button class="btn-action danger" (click)="supprimer(e)">🗑️ Supprimer</button>
+    </div>
+  </div>
+
+  <div *ngIf="listeEntreprises.length === 0" class="empty-state">
+    <div class="empty-icon">🏭</div>
+    <p>Aucune entreprise enregistrée</p>
+    <span>Ajoutez vos entreprises partenaires pour gérer leurs dotations carburant</span>
+  </div>
+
+</div>
+
+<!-- MODAL ENTREPRISE -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier l\'entreprise' : 'Ajouter une entreprise' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="entrepriseCourante.nom" name="nom"
+                 placeholder="Sonatel" required />
+        </div>
+        <div class="form-group">
+          <label>Code *</label>
+          <input type="text" [(ngModel)]="entrepriseCourante.code" name="code"
+                 placeholder="SONATEL" required style="text-transform: uppercase" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Secteur d'activité</label>
+        <input type="text" [(ngModel)]="entrepriseCourante.secteurActivite"
+               name="secteur" placeholder="Télécommunications" />
+      </div>
+
+      <div class="form-group">
+        <label>Adresse</label>
+        <input type="text" [(ngModel)]="entrepriseCourante.adresse"
+               name="adresse" placeholder="Dakar, Plateau" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="text" [(ngModel)]="entrepriseCourante.telephone"
+                 name="telephone" placeholder="+221338000000" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="entrepriseCourante.email"
+                 name="email" placeholder="contact@entreprise.sn" />
+        </div>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="entrepriseCourante.actif" name="actif" />
+          <span>Entreprise active</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ADMIN ENTREPRISE -->
+<div class="modal-overlay" *ngIf="modalAdminOuvert" (click)="fermerModalAdmin()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Administrateur — {{ entreprisePourAdmin?.nom }}</h2>
+
+    <div *ngIf="chargementAdmin" class="chargement">Chargement...</div>
+
+    <!-- Admin existant -->
+    <div *ngIf="!chargementAdmin && adminExistant" class="admin-existant">
+
+      <!-- Identifiants affichés une seule fois après création -->
+      <div class="credentials-box" *ngIf="adminExistant.motDePasseTemporaire">
+        <h4>🔐 Identifiants générés</h4>
+        <div class="credential-item">
+          <span class="credential-label">Login</span>
+          <span class="credential-valeur">{{ adminExistant.login }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Mot de passe temporaire</span>
+          <span class="credential-valeur">{{ adminExistant.motDePasseTemporaire }}</span>
+        </div>
+        <p class="credential-note">⚠️ Ces identifiants ont aussi été envoyés par email. Notez-les maintenant, ils ne seront plus affichés.</p>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-avatar">{{ adminExistant.prenom.charAt(0) }}{{ adminExistant.nom.charAt(0) }}</div>
+        <div class="admin-info">
+          <strong>{{ adminExistant.prenom }} {{ adminExistant.nom }}</strong>
+          <span>{{ adminExistant.email }}</span>
+          <span class="login-badge">{{ adminExistant.login }}</span>
+        </div>
+        <span class="statut-badge" [class.actif]="adminExistant.actif" [class.inactif]="!adminExistant.actif">
+          {{ adminExistant.actif ? 'Actif' : 'Inactif' }}
+        </span>
+      </div>
+
+<div *ngIf="!adminExistant?.motDePasseTemporaire">
+  <div class="info-box" style="margin-top: 1rem;" *ngIf="!modeRemplacement">
+    ℹ️ Cette entreprise a déjà un administrateur.
+    <button class="btn-changer" (click)="basculerRemplacement()">
+      🔄 Changer d'admin
+    </button>
+  </div>
+
+  <!-- Formulaire de remplacement -->
+  <div *ngIf="modeRemplacement" style="margin-top: 1rem;">
+    <div class="warning-box">
+      ⚠️ L'ancien administrateur sera désactivé et un nouveau compte sera créé.
+    </div>
+
+    <div class="erreur" *ngIf="erreurAdmin" style="margin-top: 0.75rem;">{{ erreurAdmin }}</div>
+
+    <form (ngSubmit)="remplacerAdmin()" style="margin-top: 1rem;">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="formAdmin.prenom" name="prenomR"
+                 placeholder="Nouveau prénom" required />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="formAdmin.nom" name="nomR"
+                 placeholder="Nouveau nom" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="formAdmin.email" name="emailR"
+               placeholder="nouvel.admin@entreprise.sn" required />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="basculerRemplacement()"
+                [disabled]="enregistrementAdmin">Annuler</button>
+        <button type="submit" class="btn-danger" [disabled]="enregistrementAdmin">
+          {{ enregistrementAdmin ? 'Remplacement...' : '🔄 Confirmer le remplacement' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+    </div>
+
+    <!-- Pas d'admin — formulaire création -->
+    <div *ngIf="!chargementAdmin && !adminExistant">
+      <div class="info-box" style="margin-bottom: 1.25rem;">
+        📧 Le login et le mot de passe seront générés automatiquement et envoyés par email.
+      </div>
+
+      <div class="erreur" *ngIf="erreurAdmin">{{ erreurAdmin }}</div>
+
+      <form (ngSubmit)="creerAdmin()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="formAdmin.prenom" name="prenom"
+                   placeholder="Ibrahima" required />
+          </div>
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="formAdmin.nom" name="nom"
+                   placeholder="Fall" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formAdmin.email" name="email"
+                 placeholder="ibrahima.fall@sonatel.sn" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="fermerModalAdmin()"
+                  [disabled]="enregistrementAdmin">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="enregistrementAdmin">
+            {{ enregistrementAdmin ? 'Création...' : 'Créer l\'administrateur' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-actions" *ngIf="!chargementAdmin && adminExistant">
+      <button class="btn-secondary" (click)="fermerModalAdmin()">Fermer</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="page-header">
+  <div>
+    <h1>{{ stats?.nomCompagnie || 'Mon Espace' }}</h1>
+    <p>Vue d'ensemble de votre compagnie — {{ stats?.codeCompagnie }}</p>
+  </div>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement des données...</div>
+
+<div *ngIf="stats" class="kpis">
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon-wrap bleu">⛽</div>
+    </div>
+    <div class="kpi-valeur">{{ stats.totalStations }}</div>
+    <div class="kpi-label">Mes Stations</div>
+    <div class="kpi-detail">{{ stats.stationsActives }} actives</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon-wrap orange">👥</div>
+    </div>
+    <div class="kpi-valeur">{{ stats.totalEmployes }}</div>
+    <div class="kpi-label">Mon Personnel</div>
+    <div class="kpi-detail">Membres de l'équipe</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon-wrap vert">🏢</div>
+    </div>
+    <div class="kpi-valeur">{{ stats.codeCompagnie }}</div>
+    <div class="kpi-label">Code Compagnie</div>
+    <div class="kpi-detail">{{ stats.nomCompagnie }}</div>
+  </div>
+
+</div>
+
+<div *ngIf="stats" class="welcome-card">
+  <div class="welcome-icon">👋</div>
+  <div>
+    <h3>Bienvenue, {{ stats.nomCompagnie }} !</h3>
+    <p>Gérez vos stations et votre personnel depuis ce tableau de bord. Utilisez le menu à gauche pour accéder aux différentes sections.</p>
+  </div>
+</div>

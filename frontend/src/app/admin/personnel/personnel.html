@@ -1,0 +1,127 @@
+<div class="page-header">
+  <div>
+    <h1>Mon Personnel</h1>
+    <p>Gérez les gérants et pompistes de vos stations</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un employé</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Login</th>
+        <th>Nom complet</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Station assignée</th>
+        <th>Dernière connexion</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of listePersonnel">
+        <td><span class="login-badge">{{ p.login }}</span></td>
+        <td class="nom-personnel">{{ p.prenom }} {{ p.nom }}</td>
+        <td>{{ p.email }}</td>
+        <td>
+          <span class="role-badge gerant" *ngIf="p.role === 'GERANT'">👔 Gérant</span>
+          <span class="role-badge pompiste" *ngIf="p.role === 'POMPISTE'">⛽ Pompiste</span>
+        </td>
+        <td>
+          <span class="station-tag" *ngIf="p.station">{{ p.station.nom }}</span>
+          <span class="no-station" *ngIf="!p.station">Non assigné</span>
+        </td>
+        <td>{{ p.derniereConnexion ? (p.derniereConnexion | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+        <td>
+          <span class="statut" [class.actif]="p.actif" [class.inactif]="!p.actif">
+            {{ p.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirEdition(p)" title="Modifier">✏️</button>
+          <button class="btn-icon danger" (click)="supprimer(p)" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+      <tr *ngIf="listePersonnel.length === 0">
+        <td colspan="8" class="empty-cell">Aucun employé enregistré</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier l\'employé' : 'Ajouter un employé' }}</h2>
+
+    <div *ngIf="!modeEdition" class="info-box">
+      📧 Le login et le mot de passe seront générés automatiquement et envoyés par email.
+    </div>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-group" *ngIf="modeEdition">
+        <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+        <input type="password" [(ngModel)]="personnelCourant.motDePasse"
+               name="motDePasse" placeholder="Laisser vide pour ne pas changer" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="personnelCourant.prenom"
+                 name="prenom" placeholder="Awa" required />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="personnelCourant.nom"
+                 name="nom" placeholder="Sow" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="personnelCourant.email"
+               name="email" placeholder="awa.sow@total.sn" required />
+      </div>
+
+      <div class="form-group">
+        <label>Rôle *</label>
+        <select [(ngModel)]="personnelCourant.role" name="role" required>
+          <option value="GERANT">👔 Gérant de station</option>
+          <option value="POMPISTE">⛽ Pompiste</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Station assignée</label>
+        <select [(ngModel)]="personnelCourant.stationId" name="stationId">
+          <option [ngValue]="null">— Aucune —</option>
+          <option *ngFor="let s of listeStations" [ngValue]="s.id">{{ s.nom }}</option>
+        </select>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="personnelCourant.actif" name="actif" />
+          <span>Compte actif</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

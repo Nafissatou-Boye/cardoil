@@ -1,0 +1,142 @@
+<div class="page-header">
+  <div>
+    <h1>Rapports</h1>
+    <p>Suivi de l'activité de votre compagnie</p>
+  </div>
+  <div class="period-selector">
+    <button *ngFor="let p of periodes"
+            class="period-btn"
+            [class.active]="periodeActive === p"
+            (click)="changerPeriode(p)">{{ p }}</button>
+  </div>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement des données...</div>
+
+<div *ngIf="rapport && !chargement">
+
+  <!-- KPIs GLOBAUX -->
+  <div class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap vert">💰</div>
+      </div>
+      <div class="kpi-valeur">{{ formatMontant(rapport.caTotal) }}</div>
+      <div class="kpi-label">Chiffre d'affaires</div>
+      <div class="kpi-detail">Transactions réussies</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap bleu">📊</div>
+      </div>
+      <div class="kpi-valeur">{{ rapport.totalTransactions }}</div>
+      <div class="kpi-label">Total transactions</div>
+      <div class="kpi-detail">Sur la période</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap vert">✅</div>
+      </div>
+      <div class="kpi-valeur">{{ rapport.transactionsReussies }}</div>
+      <div class="kpi-label">Réussies</div>
+      <div class="kpi-detail">
+        {{ rapport.totalTransactions > 0
+          ? ((rapport.transactionsReussies / rapport.totalTransactions) * 100 | number:'1.0-0') + '%'
+          : '0%' }}
+        du total
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap rouge">❌</div>
+      </div>
+      <div class="kpi-valeur">{{ rapport.transactionsEchec }}</div>
+      <div class="kpi-label">Échouées</div>
+      <div class="kpi-detail">
+        {{ rapport.totalTransactions > 0
+          ? ((rapport.transactionsEchec / rapport.totalTransactions) * 100 | number:'1.0-0') + '%'
+          : '0%' }}
+        du total
+      </div>
+    </div>
+  </div>
+
+  <!-- PAR STATION -->
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Performance par station</h3>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Station</th>
+          <th>Chiffre d'affaires</th>
+          <th>Nb transactions</th>
+          <th>Part du CA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of rapport.parStation">
+          <td class="nom-station">{{ s.nom }}</td>
+          <td>{{ formatMontant(s.ca) }}</td>
+          <td>{{ s.nbTransactions }}</td>
+          <td>
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width]="rapport.caTotal > 0 ? (s.ca / rapport.caTotal * 100) + '%' : '0%'">
+              </div>
+              <span>{{ rapport.caTotal > 0 ? (s.ca / rapport.caTotal * 100 | number:'1.0-0') : 0 }}%</span>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="rapport.parStation.length === 0">
+          <td colspan="4" class="empty-cell">Aucune station</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DERNIERES TRANSACTIONS -->
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Dernières transactions</h3>
+      <span class="section-note">10 plus récentes</span>
+    </div>
+
+    <div *ngIf="rapport.dernieresTransactions.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p>Aucune transaction sur cette période</p>
+    </div>
+
+    <table *ngIf="rapport.dernieresTransactions.length > 0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Montant</th>
+          <th>Station</th>
+          <th>Opérateur</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of rapport.dernieresTransactions">
+          <td class="date-cell">{{ t.dateTransaction }}</td>
+          <td>{{ getTypeLabel(t.type) }}</td>
+          <td class="montant-cell">{{ formatMontant(t.montant) }}</td>
+          <td>{{ t.station }}</td>
+          <td>{{ t.operateur }}</td>
+          <td>
+            <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+              {{ t.statut }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

@@ -1,0 +1,128 @@
+<div class="page-header">
+  <div>
+    <h1>Catalogue de Cadeaux</h1>
+    <p>Gérez les récompenses échangeables contre des points</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un cadeau</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="cadeaux-grid">
+
+  <div class="cadeau-card" *ngFor="let c of listeCadeaux" [class.inactif]="!c.actif">
+    <div class="cadeau-header">
+      <div class="cadeau-type">
+        <span class="type-icon">{{ getTypeIcon(c.type) }}</span>
+        <span class="type-label">{{ getTypeLabel(c.type) }}</span>
+      </div>
+      <span class="statut-badge" [class.actif]="c.actif" [class.inactif]="!c.actif">
+        {{ c.actif ? 'Disponible' : 'Indisponible' }}
+      </span>
+    </div>
+
+    <h3 class="cadeau-nom">{{ c.nom }}</h3>
+    <p class="cadeau-desc">{{ c.descriptionLongue || 'Aucune description' }}</p>
+
+    <div class="cadeau-cout">
+      <span class="cout-valeur">⭐ {{ c.coutEnPoints }} points</span>
+    </div>
+
+    <div class="cadeau-infos">
+      <div class="info-item">
+        <span class="info-label">Stock</span>
+        <span class="info-valeur">{{ formatStock(c) }}</span>
+      </div>
+      <div class="info-item" *ngIf="c.dateExpiration">
+        <span class="info-label">Expire le</span>
+        <span class="info-valeur">{{ c.dateExpiration }}</span>
+      </div>
+    </div>
+
+    <div class="cadeau-actions">
+      <button class="btn-action" (click)="ouvrirEdition(c)">✏️ Modifier</button>
+      <button class="btn-action" [class.warning]="c.actif" [class.success]="!c.actif"
+              (click)="toggleActif(c)">
+        {{ c.actif ? '⏸️ Désactiver' : '▶️ Activer' }}
+      </button>
+      <button class="btn-action danger" (click)="supprimer(c)">🗑️ Supprimer</button>
+    </div>
+  </div>
+
+  <div *ngIf="listeCadeaux.length === 0" class="empty-state">
+    <div class="empty-icon">🎁</div>
+    <p>Aucun cadeau dans le catalogue</p>
+    <span>Ajoutez des récompenses que vos clients pourront échanger avec leurs points</span>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier le cadeau' : 'Ajouter un cadeau' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-group">
+        <label>Nom du cadeau * (max 100 caractères)</label>
+        <input type="text" [(ngModel)]="cadeauCourant.nom" name="nom"
+               placeholder="Bidon d'huile moteur 5L" maxlength="100" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type *</label>
+          <select [(ngModel)]="cadeauCourant.type" name="type" required>
+            <option value="PHYSIQUE">📦 Physique</option>
+            <option value="SERVICE">🎯 Service</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Coût en points *</label>
+          <input type="number" min="1" [(ngModel)]="cadeauCourant.coutEnPoints"
+                 name="coutEnPoints" placeholder="500" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Stock disponible (0 = illimité)</label>
+        <input type="number" min="0" [(ngModel)]="cadeauCourant.stockDisponible"
+               name="stock" placeholder="50" />
+        <span class="field-hint" *ngIf="cadeauCourant.stockDisponible === 0">
+          ∞ Stock illimité
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Description longue</label>
+        <textarea [(ngModel)]="cadeauCourant.descriptionLongue" name="description"
+                   rows="3" placeholder="Détails, conditions d'échange..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Date d'expiration (optionnel)</label>
+        <input type="date" [(ngModel)]="cadeauCourant.dateExpiration"
+               name="dateExpiration" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="cadeauCourant.actif" name="actif" />
+          <span>Cadeau disponible à l'échange</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

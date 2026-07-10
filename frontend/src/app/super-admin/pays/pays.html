@@ -1,0 +1,93 @@
+<div class="page-header">
+  <div>
+    <h1>Gestion des Pays</h1>
+    <p>Gérez les pays disponibles sur la plateforme</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un pays</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Code ISO</th>
+        <th>Nom</th>
+        <th>Devise</th>
+        <th>Indicatif</th>
+        <th>Compagnies</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let pays of listePays">
+        <td><span class="code-badge">{{ pays.codeIso }}</span></td>
+        <td class="nom-pays">{{ pays.nom }}</td>
+        <td>{{ pays.devise || '—' }}</td>
+        <td>{{ pays.indicatifTel || '—' }}</td>
+        <td>{{ pays.nombreCompagnies }}</td>
+        <td>
+          <span class="statut" [class.actif]="pays.actif" [class.inactif]="!pays.actif">
+            {{ pays.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirEdition(pays)" title="Modifier">✏️</button>
+          <button class="btn-icon danger" (click)="supprimer(pays)" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="listePays.length === 0">
+        <td colspan="7" class="empty-cell">Aucun pays enregistré</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier le pays' : 'Ajouter un pays' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Code ISO *</label>
+          <input type="text" [(ngModel)]="paysCourant.codeIso" name="codeIso" maxlength="3" placeholder="SN" required />
+        </div>
+        <div class="form-group">
+          <label>Indicatif téléphonique</label>
+          <input type="text" [(ngModel)]="paysCourant.indicatifTel" name="indicatifTel" placeholder="+221" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nom du pays *</label>
+        <input type="text" [(ngModel)]="paysCourant.nom" name="nom" placeholder="Sénégal" required />
+      </div>
+
+      <div class="form-group">
+        <label>Devise</label>
+        <input type="text" [(ngModel)]="paysCourant.devise" name="devise" placeholder="FCFA" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="paysCourant.actif" name="actif" />
+          <span>Pays actif</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ modeEdition ? 'Enregistrer' : 'Ajouter' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -1,0 +1,345 @@
+<div class="page-header">
+  <div>
+    <h1>Promotions</h1>
+    <p>Gérez vos campagnes de fidélité</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirWizard()">+ Créer une promotion</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="promo-grid">
+  <div class="promo-card" *ngFor="let p of listePromotions">
+    <div class="promo-header">
+      <div class="promo-type">
+        <span class="type-icon">{{ getTypeIcon(p.type) }}</span>
+        <span class="type-label">{{ getTypeLabel(p.type) }}</span>
+      </div>
+      <span class="statut" [ngClass]="getStatutClass(p.statut)">{{ getStatutLabel(p.statut) }}</span>
+    </div>
+
+    <h3 class="promo-nom">{{ p.nom }}</h3>
+    <p class="promo-description">{{ p.description || 'Aucune description' }}</p>
+
+    <div class="promo-dates">
+      <span>📅 {{ p.dateDebut }} → {{ p.dateFin }}</span>
+      <span class="duree-badge">{{ p.dureeJours }} jours</span>
+    </div>
+
+    <div class="promo-regles" *ngIf="p.montantMinimum || p.plafondParClient || p.plafondGlobal || p.plafondJournalier">
+      <div class="regle-item" *ngIf="p.montantMinimum">
+        <span class="regle-label">Montant min.</span>
+        <span class="regle-valeur">{{ p.montantMinimum }} FCFA</span>
+      </div>
+      <div class="regle-item" *ngIf="p.plafondParClient">
+        <span class="regle-label">Plafond/client</span>
+        <span class="regle-valeur">{{ p.plafondParClient }}</span>
+      </div>
+      <div class="regle-item" *ngIf="p.plafondJournalier">
+        <span class="regle-label">Plafond/jour</span>
+        <span class="regle-valeur">{{ p.plafondJournalier }}</span>
+      </div>
+    </div>
+
+    <!-- Récompenses -->
+    <div class="recompense-box" *ngIf="p.type === 'POINTS' && p.pointsParTranche">
+      ⭐ {{ p.pointsParTranche }} point(s) par {{ p.montantParTranche }} FCFA
+    </div>
+    <div class="recompense-box gift" *ngIf="p.type === 'GIFT' && p.descriptionCadeau">
+      🎁 {{ p.descriptionCadeau }}
+      <span *ngIf="p.stockCadeaux"> — Stock : {{ p.stockCadeaux }}</span>
+    </div>
+    <div class="recompense-box scratch" *ngIf="p.type === 'SCRATCH' && p.probabiliteGain">
+      🎫 Gain : {{ p.probabiliteGain }}% — {{ p.descriptionLot }}
+    </div>
+
+    <!-- Stations -->
+    <div class="stations-box" *ngIf="p.stationsConcernees && p.stationsConcernees.length > 0">
+      📍 {{ p.stationsConcernees.length }} station(s) concernée(s)
+    </div>
+    <div class="stations-box toutes" *ngIf="!p.stationsConcernees || p.stationsConcernees.length === 0">
+      📍 Toutes les stations
+    </div>
+
+    <div class="promo-joursRestants" *ngIf="p.statut === 'ACTIVE'">
+      ⏳ {{ p.joursRestants }} jour(s) restant(s)
+    </div>
+
+    <div class="promo-actions">
+      <button *ngIf="p.statut === 'DRAFT'" class="btn-action" (click)="ouvrirEdition(p)">✏️ Modifier</button>
+      <button *ngIf="p.statut === 'DRAFT'" class="btn-action success" (click)="changerStatut(p, 'ACTIVE')">✅ Activer</button>
+      <button *ngIf="p.statut === 'DRAFT'" class="btn-action danger" (click)="supprimer(p)">🗑️ Supprimer</button>
+      <button *ngIf="p.statut === 'ACTIVE'" class="btn-action warning" (click)="changerStatut(p, 'SUSPENDUE')">⏸️ Suspendre</button>
+      <button *ngIf="p.statut === 'SUSPENDUE'" class="btn-action success" (click)="changerStatut(p, 'ACTIVE')">▶️ Réactiver</button>
+      <button *ngIf="p.statut === 'ARCHIVEE'" class="btn-action" (click)="changerStatut(p, 'DRAFT')">🔄 Restaurer</button>
+      <button *ngIf="p.statut === 'DRAFT' || p.statut === 'ACTIVE' || p.statut === 'SUSPENDUE' || p.statut === 'EXPIREE'"
+              class="btn-action" (click)="changerStatut(p, 'ARCHIVEE')">📦 Archiver</button>
+    </div>
+  </div>
+
+  <div *ngIf="listePromotions.length === 0" class="empty-state">
+    <div class="empty-icon">🎉</div>
+    <p>Aucune promotion créée</p>
+    <span>Créez votre première campagne de fidélité</span>
+  </div>
+</div>
+
+<!-- WIZARD -->
+<div class="modal-overlay" *ngIf="wizardOuvert" (click)="fermerWizard()">
+  <div class="wizard-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header wizard -->
+    <div class="wizard-header">
+      <div class="wizard-title">
+        <h2>{{ modeEdition ? 'Modifier la promotion' : 'Créer une promotion' }}</h2>
+        <span class="etape-label">Étape {{ etapeActuelle }}/{{ totalEtapes }} — {{ getEtapeLabel() }}</span>
+      </div>
+      <button class="btn-close" (click)="fermerWizard()">✕</button>
+    </div>
+
+    <!-- Barre de progression -->
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getProgres()"></div>
+    </div>
+
+    <!-- Étapes indicateurs -->
+    <div class="etapes-nav">
+      <div class="etape-dot" *ngFor="let e of [1,2,3,4,5,6]"
+           [class.active]="etapeActuelle === e"
+           [class.done]="etapeActuelle > e">
+        {{ etapeActuelle > e ? '✓' : e }}
+      </div>
+    </div>
+
+    <div class="erreur wizard-erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <div class="wizard-body">
+
+      <!-- ÉTAPE 1 : Identité -->
+      <div *ngIf="etapeActuelle === 1">
+        <h3 class="etape-titre">🏷️ Identité de la campagne</h3>
+
+        <div class="form-group">
+          <label>Nom de la campagne *</label>
+          <input type="text" [(ngModel)]="promo.nom" placeholder="Fidélité Ramadan 2026" />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="promo.description" rows="3"
+                    placeholder="Gagnez des points à chaque achat de carburant"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Type de promotion *</label>
+          <div class="type-cards">
+            <div class="type-card" [class.selected]="promo.type === 'POINTS'"
+                 (click)="promo.type = 'POINTS'">
+              <span class="type-card-icon">⭐</span>
+              <span class="type-card-nom">Points fidélité</span>
+              <span class="type-card-desc">Capitalisez des points à chaque achat</span>
+            </div>
+            <div class="type-card" [class.selected]="promo.type === 'GIFT'"
+                 (click)="promo.type = 'GIFT'">
+              <span class="type-card-icon">🎁</span>
+              <span class="type-card-nom">Cadeau direct</span>
+              <span class="type-card-desc">Offrez un cadeau à partir d'un seuil</span>
+            </div>
+            <div class="type-card" [class.selected]="promo.type === 'SCRATCH'"
+                 (click)="promo.type = 'SCRATCH'">
+              <span class="type-card-icon">🎫</span>
+              <span class="type-card-nom">Grattage</span>
+              <span class="type-card-desc">Tentez de gagner un lot instantané</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : Période -->
+      <div *ngIf="etapeActuelle === 2">
+        <h3 class="etape-titre">📅 Période de la campagne</h3>
+        <div class="info-box">⚠️ La durée maximale d'une promotion est de 180 jours.</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date de début *</label>
+            <input type="datetime-local" [(ngModel)]="dateDebutInput" />
+          </div>
+          <div class="form-group">
+            <label>Date de fin *</label>
+            <input type="datetime-local" [(ngModel)]="dateFinInput" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 : Éligibilité -->
+      <div *ngIf="etapeActuelle === 3">
+        <h3 class="etape-titre">🎯 Règles d'éligibilité</h3>
+
+        <div class="form-group">
+          <label>Montant minimum d'achat (FCFA)</label>
+          <input type="number" [(ngModel)]="promo.montantMinimum" placeholder="1000" />
+        </div>
+
+        <div class="form-group">
+          <label>Stations concernées</label>
+          <p class="field-hint">Laissez vide pour appliquer à toutes vos stations</p>
+          <div class="stations-checkboxes">
+            <label class="station-checkbox" *ngFor="let s of listeStations">
+              <input type="checkbox"
+                     [checked]="isStationSelectionnee(s.id!)"
+                     (change)="toggleStation(s.id!)" />
+              <span>{{ s.nom }}</span>
+            </label>
+            <p class="no-stations" *ngIf="listeStations.length === 0">Aucune station disponible</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 : Limites -->
+      <div *ngIf="etapeActuelle === 4">
+        <h3 class="etape-titre">🚦 Limites & plafonds</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Plafond par client</label>
+            <input type="number" [(ngModel)]="promo.plafondParClient" placeholder="50" />
+          </div>
+          <div class="form-group">
+            <label>Plafond global campagne</label>
+            <input type="number" [(ngModel)]="promo.plafondGlobal" placeholder="10000" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Plafond journalier par client</label>
+          <input type="number" [(ngModel)]="promo.plafondJournalier" placeholder="5" />
+        </div>
+      </div>
+
+      <!-- ÉTAPE 5 : Récompenses -->
+      <div *ngIf="etapeActuelle === 5">
+        <h3 class="etape-titre">🏆 Récompenses — {{ getTypeLabel(promo.type) }}</h3>
+
+        <!-- POINTS -->
+        <div *ngIf="promo.type === 'POINTS'">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Points attribués *</label>
+              <input type="number" [(ngModel)]="promo.pointsParTranche" placeholder="1" />
+            </div>
+            <div class="form-group">
+              <label>Pour chaque (FCFA) *</label>
+              <input type="number" [(ngModel)]="promo.montantParTranche" placeholder="100" />
+            </div>
+          </div>
+          <div class="recompense-preview" *ngIf="promo.pointsParTranche && promo.montantParTranche">
+            ⭐ {{ promo.pointsParTranche }} point(s) pour {{ promo.montantParTranche }} FCFA dépensés
+          </div>
+        </div>
+
+        <!-- GIFT -->
+        <div *ngIf="promo.type === 'GIFT'">
+          <div class="form-group">
+            <label>Description du cadeau *</label>
+            <input type="text" [(ngModel)]="promo.descriptionCadeau"
+                   placeholder="Bidon d'huile moteur 5L" />
+          </div>
+          <div class="form-group">
+            <label>Stock de cadeaux disponibles</label>
+            <input type="number" [(ngModel)]="promo.stockCadeaux" placeholder="200" />
+          </div>
+        </div>
+
+        <!-- SCRATCH -->
+        <div *ngIf="promo.type === 'SCRATCH'">
+          <div class="form-group">
+            <label>Probabilité de gain (%) *</label>
+            <input type="number" min="0" max="100" step="0.1"
+                   [(ngModel)]="promo.probabiliteGain" placeholder="25" />
+          </div>
+          <div class="form-group">
+            <label>Description du lot *</label>
+            <input type="text" [(ngModel)]="promo.descriptionLot"
+                   placeholder="Bon carburant 5 000 FCFA" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 6 : Récapitulatif -->
+      <div *ngIf="etapeActuelle === 6">
+        <h3 class="etape-titre">✅ Récapitulatif</h3>
+        <div class="recap-grid">
+          <div class="recap-section">
+            <h4>Identité</h4>
+            <div class="recap-item"><span>Nom</span><strong>{{ promo.nom }}</strong></div>
+            <div class="recap-item"><span>Type</span><strong>{{ getTypeIcon(promo.type) }} {{ getTypeLabel(promo.type) }}</strong></div>
+            <div class="recap-item" *ngIf="promo.description"><span>Description</span><strong>{{ promo.description }}</strong></div>
+          </div>
+
+          <div class="recap-section">
+            <h4>Période</h4>
+            <div class="recap-item"><span>Début</span><strong>{{ dateDebutInput }}</strong></div>
+            <div class="recap-item"><span>Fin</span><strong>{{ dateFinInput }}</strong></div>
+          </div>
+
+          <div class="recap-section">
+            <h4>Éligibilité</h4>
+            <div class="recap-item">
+              <span>Montant min.</span>
+              <strong>{{ promo.montantMinimum ? promo.montantMinimum + ' FCFA' : 'Aucun' }}</strong>
+            </div>
+            <div class="recap-item">
+              <span>Stations</span>
+              <strong>{{ stationsSelectionnees.length === 0 ? 'Toutes' : stationsSelectionnees.length + ' station(s)' }}</strong>
+            </div>
+          </div>
+
+          <div class="recap-section">
+            <h4>Limites</h4>
+            <div class="recap-item"><span>Par client</span><strong>{{ promo.plafondParClient || 'Illimité' }}</strong></div>
+            <div class="recap-item"><span>Global</span><strong>{{ promo.plafondGlobal || 'Illimité' }}</strong></div>
+            <div class="recap-item"><span>Journalier</span><strong>{{ promo.plafondJournalier || 'Illimité' }}</strong></div>
+          </div>
+
+          <div class="recap-section">
+            <h4>Récompenses</h4>
+            <div *ngIf="promo.type === 'POINTS'">
+              <div class="recap-item"><span>Ratio</span><strong>{{ promo.pointsParTranche }} pt / {{ promo.montantParTranche }} FCFA</strong></div>
+            </div>
+            <div *ngIf="promo.type === 'GIFT'">
+              <div class="recap-item"><span>Cadeau</span><strong>{{ promo.descriptionCadeau }}</strong></div>
+              <div class="recap-item"><span>Stock</span><strong>{{ promo.stockCadeaux || 'Non défini' }}</strong></div>
+            </div>
+            <div *ngIf="promo.type === 'SCRATCH'">
+              <div class="recap-item"><span>Probabilité</span><strong>{{ promo.probabiliteGain }}%</strong></div>
+              <div class="recap-item"><span>Lot</span><strong>{{ promo.descriptionLot }}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box confirmation-box">
+          💡 La promotion sera créée en statut <strong>Brouillon</strong>. Vous pourrez l'activer quand vous serez prêt.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer wizard -->
+    <div class="wizard-footer">
+      <button class="btn-secondary" (click)="etapeActuelle > 1 ? etapePrecedente() : fermerWizard()">
+        {{ etapeActuelle > 1 ? '← Précédent' : 'Annuler' }}
+      </button>
+
+      <button *ngIf="etapeActuelle < totalEtapes" class="btn-primary" (click)="etapeSuivante()">
+        Suivant →
+      </button>
+
+      <button *ngIf="etapeActuelle === totalEtapes" class="btn-primary" (click)="enregistrer()"
+              [disabled]="enregistrement">
+        {{ enregistrement ? 'Enregistrement...' : (modeEdition ? '💾 Enregistrer' : '🚀 Créer en brouillon') }}
+      </button>
+    </div>
+
+  </div>
+</div>

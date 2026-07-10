@@ -1,0 +1,276 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Établissements Financiers</h1>
+      <p class="subtitle">Partenaires autorisés à recharger des comptes clients via l'API externe.</p>
+    </div>
+    <button class="btn-primary" (click)="ouvrirModalCreation()">
+      <span class="material-icons">add</span>
+      Nouvel établissement
+    </button>
+  </div>
+
+  @if (erreur) {
+    <div class="banniere-erreur">
+      <span class="material-icons">error_outline</span>
+      {{ erreur }}
+    </div>
+  }
+
+  @if (chargement) {
+    <div class="chargement">Chargement...</div>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Statut</th>
+            <th>Clé API</th>
+            <th>Compagnies liées</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (etab of etablissements; track etab.id) {
+            <tr>
+              <td>
+                <strong>{{ etab.nom }}</strong>
+                <div class="email-secondaire">{{ etab.emailContact }}</div>
+              </td>
+              <td><code>{{ etab.code }}</code></td>
+              <td>{{ labelsType[etab.type] }}</td>
+              <td>
+                <span class="badge" [class.badge-actif]="etab.statut === 'ACTIF'"
+                                     [class.badge-suspendu]="etab.statut === 'SUSPENDU'"
+                                     [class.badge-inactif]="etab.statut === 'INACTIF'">
+                  {{ etab.statut }}
+                </span>
+              </td>
+              <td>
+                <code>{{ etab.apiKeyPrefix }}...</code>
+                <div class="expiration">expire le {{ etab.apiKeyExpiration | date:'dd/MM/yyyy' }}</div>
+              </td>
+              <td class="centre">
+                <button class="lien-compagnies" (click)="ouvrirModalLiaisons(etab)">
+                  {{ etab.nombreCompagniesLiees }}
+                </button>
+              </td>
+              <td class="actions">
+                <button class="btn-icone" title="Régénérer la clé" (click)="regenererCle(etab)">
+                  <span class="material-icons">vpn_key</span>
+                </button>
+                @if (etab.statut === 'ACTIF') {
+                  <button class="btn-icone" title="Suspendre" (click)="changerStatut(etab, 'SUSPENDU')">
+                    <span class="material-icons">pause_circle</span>
+                  </button>
+                } @else {
+                  <button class="btn-icone" title="Réactiver" (click)="changerStatut(etab, 'ACTIF')">
+                    <span class="material-icons">play_circle</span>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="vide">Aucun établissement financier enregistré.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (afficherModalCreation) {
+    <div class="modal-overlay" (click)="fermerModalCreation()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Nouvel établissement financier</h2>
+
+        <form (ngSubmit)="soumettreCreation()" #formCreation="ngForm">
+          <label>
+            Nom
+            <input type="text" name="nom" [(ngModel)]="formulaire.nom" required />
+          </label>
+
+          <label>
+            Code (identifiant unique)
+            <input type="text" name="code" [(ngModel)]="formulaire.code" placeholder="ex: ORANGE-MONEY-SN" required />
+          </label>
+
+          <label>
+            Type
+            <select name="type" [(ngModel)]="formulaire.type" required>
+              @for (t of typesDisponibles; track t) {
+                <option [value]="t">{{ labelsType[t] }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            Email de contact
+            <input type="email" name="emailContact" [(ngModel)]="formulaire.emailContact" required />
+          </label>
+
+          <label>
+            Téléphone de contact
+            <input type="tel" name="telephoneContact" [(ngModel)]="formulaire.telephoneContact" />
+          </label>
+
+          <label>
+            Limite de requêtes / minute
+            <input type="number" name="rateLimitParMinute" [(ngModel)]="formulaire.rateLimitParMinute" />
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondaire" (click)="fermerModalCreation()">Annuler</button>
+            <button type="submit" class="btn-primary" [disabled]="!formCreation.valid || creationEnCours">
+              {{ creationEnCours ? 'Création...' : 'Créer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (cleGeneree) {
+    <div class="modal-overlay">
+      <div class="modal modal-cle">
+        <span class="material-icons icone-alerte">warning_amber</span>
+        <h2>Clé API générée</h2>
+        <p>Copiez cette clé maintenant — elle ne sera <strong>plus jamais réaffichée</strong> en clair.</p>
+
+        <div class="cle-affichage">
+          <code id="cle-api-texte">{{ cleGeneree.apiKey }}</code>
+          <button class="btn-icone" (click)="copierCle()" title="Copier">
+            <span class="material-icons">{{ cleCopiee ? 'check' : 'content_copy' }}</span>
+          </button>
+        </div>
+        @if (cleCopiee) {
+          <p class="confirmation-copie">Copié dans le presse-papiers.</p>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-primary" (click)="fermerModalCle()">J'ai copié la clé, fermer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (afficherModalLiaisons && etablissementSelectionne) {
+    <div class="modal-overlay" (click)="fermerModalLiaisons()">
+      <div class="modal modal-liaisons" (click)="$event.stopPropagation()">
+        <div class="modal-liaisons-header">
+          <div>
+            <h2>Compagnies liées</h2>
+            <p class="subtitle">{{ etablissementSelectionne.nom }}</p>
+          </div>
+          <button class="btn-icone" (click)="fermerModalLiaisons()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        @if (erreurLiaisons) {
+          <div class="banniere-erreur">
+            <span class="material-icons">error_outline</span>
+            {{ erreurLiaisons }}
+          </div>
+        }
+
+        @if (chargementLiaisons) {
+          <div class="chargement">Chargement...</div>
+        } @else {
+          <table class="table-liaisons">
+            <thead>
+              <tr>
+                <th>Compagnie</th>
+                <th>Statut</th>
+                <th>Montant min.</th>
+                <th>Montant max./transaction</th>
+                <th>Plafond jour./client</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (liaison of liaisons; track liaison.id) {
+                <tr>
+                  <td>{{ liaison.compagnieNom }}</td>
+                  <td>
+                    <span class="badge" [class.badge-actif]="liaison.statut === 'ACTIF'"
+                                         [class.badge-suspendu]="liaison.statut === 'SUSPENDU'"
+                                         [class.badge-inactif]="liaison.statut === 'INACTIF'">
+                      {{ liaison.statut }}
+                    </span>
+                  </td>
+                  <td>{{ liaison.montantMinimum | number:'1.0-0' }} {{ liaison.devise }}</td>
+<td>{{ liaison.montantMaximumParTransaction | number:'1.0-0' }} {{ liaison.devise }}</td>
+<td>{{ liaison.plafondJournalierParClient | number:'1.0-0' }} {{ liaison.devise }}</td>
+
+<td class="actions">
+                    <button class="btn-icone" [title]="liaison.statut === 'ACTIF' ? 'Suspendre' : 'Réactiver'"
+                            (click)="toggleStatutLiaison(liaison)">
+                      <span class="material-icons">
+                        {{ liaison.statut === 'ACTIF' ? 'pause_circle' : 'play_circle' }}
+                      </span>
+                    </button>
+                    <button class="btn-icone" title="Retirer" (click)="supprimerLiaison(liaison)">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="vide">Aucune compagnie liée pour l'instant.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        @if (!afficherFormAjoutLiaison) {
+          <button class="btn-secondaire btn-ajouter-liaison" (click)="ouvrirFormAjoutLiaison()">
+            <span class="material-icons">add</span>
+            Lier une compagnie
+          </button>
+        } @else {
+          <form class="form-liaison" (ngSubmit)="soumettreLiaison()" #formLiaison="ngForm">
+            <label>
+              Compagnie
+              <select name="compagnieId" [(ngModel)]="formulaireLiaison.compagnieId" required>
+                <option [ngValue]="0" disabled>Choisir une compagnie</option>
+                @for (c of compagniesNonLiees(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.nom }}</option>
+                }
+              </select>
+            </label>
+
+            <div class="form-liaison-plafonds">
+              <label>
+                Montant minimum
+                <input type="number" name="montantMinimum" [(ngModel)]="formulaireLiaison.montantMinimum" />
+              </label>
+              <label>
+                Montant max. / transaction
+                <input type="number" name="montantMaximumParTransaction" [(ngModel)]="formulaireLiaison.montantMaximumParTransaction" />
+              </label>
+              <label>
+                Plafond journalier / client
+                <input type="number" name="plafondJournalierParClient" [(ngModel)]="formulaireLiaison.plafondJournalierParClient" />
+              </label>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondaire" (click)="annulerAjoutLiaison()">Annuler</button>
+              <button type="submit" class="btn-primary" [disabled]="!formulaireLiaison.compagnieId || creationLiaisonEnCours">
+                {{ creationLiaisonEnCours ? 'Ajout...' : 'Ajouter' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+
+</div>

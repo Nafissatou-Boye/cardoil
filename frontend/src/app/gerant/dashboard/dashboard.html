@@ -1,0 +1,80 @@
+<div class="page-header">
+  <div>
+    <h1>{{ dashboard?.stationNom || 'Dashboard' }}</h1>
+    <p>{{ dashboard?.stationAdresse || 'Chargement...' }}</p>
+  </div>
+  <button class="btn-actualiser" (click)="charger()">🔄 Actualiser</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="dashboard && !chargement">
+
+  <!-- KPIs DU JOUR -->
+  <div class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-icon orange">💰</div>
+      <div class="kpi-valeur">{{ formatMontant(dashboard.caJour) }}</div>
+      <div class="kpi-label">CA du jour</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon bleu">💳</div>
+      <div class="kpi-valeur">{{ dashboard.nbTransactionsJour }}</div>
+      <div class="kpi-label">Transactions du jour</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon vert">✅</div>
+      <div class="kpi-valeur">{{ dashboard.transactionsReussiesJour }}</div>
+      <div class="kpi-label">Réussies</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon rouge">❌</div>
+      <div class="kpi-valeur">{{ dashboard.transactionsEchecJour }}</div>
+      <div class="kpi-label">Échecs</div>
+    </div>
+  </div>
+
+  <!-- DERNIÈRES TRANSACTIONS -->
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Dernières transactions</h3>
+    </div>
+
+    <table *ngIf="dashboard.dernieresTransactions.length > 0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Produit</th>
+          <th>Type</th>
+          <th>Montant</th>
+          <th>Prix TTC</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of dashboard.dernieresTransactions">
+          <td class="date-cell">{{ t.dateTransaction }}</td>
+          <td>{{ t.produitNom || '—' }}</td>
+          <td>
+            <span class="type-badge" [class.achat]="t.type === 'ACHAT'">
+              {{ t.type === 'ACHAT' ? '⛽ Achat' : '💳 Recharge' }}
+            </span>
+          </td>
+          <td class="montant-cell">{{ formatMontant(t.montant) }}</td>
+          <td>{{ t.prixTtc ? t.prixTtc + ' FCFA/L' : '—' }}</td>
+          <td>
+            <span class="statut" [ngClass]="getStatutClass(t.statut)">
+              {{ t.statut }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="dashboard.dernieresTransactions.length === 0">
+      <p>Aucune transaction aujourd'hui</p>
+      <span>Les transactions apparaîtront ici dès qu'elles seront saisies</span>
+    </div>
+  </div>
+
+</div>

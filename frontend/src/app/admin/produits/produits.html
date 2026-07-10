@@ -1,0 +1,206 @@
+<div class="page-header">
+  <div>
+    <h1>Produits & Prix</h1>
+    <p>Gérez votre catalogue de produits et leurs prix</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un produit</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Type</th>
+        <th>Prix TTC actuel</th>
+        <th>Date du prix</th>
+        <th>Obligatoire</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of listeProduits">
+        <td class="nom-produit">{{ p.nom }}</td>
+        <td>{{ getTypeLabel(p.type) }}</td>
+        <td class="prix-cell">{{ formatPrix(p.prixTtcActuel) }}</td>
+        <td class="date-cell">{{ p.datePrixActuel || '—' }}</td>
+        <td>
+          <span class="badge-obligatoire" *ngIf="p.obligatoire">Oui</span>
+          <span class="badge-non-obligatoire" *ngIf="!p.obligatoire">Non</span>
+        </td>
+        <td>
+          <span class="statut" [ngClass]="getStatutClass(p.statut)">
+            {{ getStatutLabel(p.statut) }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirPrix(p)" title="Définir le prix">💰</button>
+          <button class="btn-icon" (click)="ouvrirEdition(p)" title="Modifier">✏️</button>
+
+          <!-- Actions de statut contextuelles -->
+          <button *ngIf="p.statut === 'BROUILLON'" class="btn-icon success"
+                  (click)="changerStatut(p, 'ACTIF')" title="Activer">✅</button>
+
+          <button *ngIf="p.statut === 'ACTIF' && !p.obligatoire" class="btn-icon warning"
+                  (click)="changerStatut(p, 'INACTIF')" title="Désactiver">⏸️</button>
+
+          <button *ngIf="p.statut === 'INACTIF'" class="btn-icon success"
+                  (click)="changerStatut(p, 'ACTIF')" title="Réactiver">▶️</button>
+
+          <button *ngIf="(p.statut === 'INACTIF' || p.statut === 'BROUILLON') && !p.obligatoire"
+                  class="btn-icon danger" (click)="changerStatut(p, 'ARCHIVE')" title="Archiver">📦</button>
+
+          <button *ngIf="p.statut === 'BROUILLON'" class="btn-icon danger"
+                  (click)="supprimer(p)" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="listeProduits.length === 0">
+        <td colspan="7" class="empty-cell">Aucun produit enregistré</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL PRODUIT -->
+<div class="modal-overlay" *ngIf="modalProduitOuvert" (click)="fermerModalProduit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier le produit' : 'Ajouter un produit' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrerProduit()">
+
+      <div class="form-group">
+        <label>Nom du produit *</label>
+        <input type="text" [(ngModel)]="produitCourant.nom" name="nom" placeholder="Essence Super" required />
+      </div>
+
+      <div class="form-group">
+        <label>Type *</label>
+        <select [(ngModel)]="produitCourant.type" name="type" required>
+          <option value="LIQUIDE">Liquide (Litre) — Essence, Gasoil...</option>
+          <option value="NON_LIQUIDE">Non liquide (Prestation) — Lavage, Huile...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="produitCourant.description" name="description"
+                   placeholder="Carburant sans plomb 95" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Catégorie</label>
+        <input type="text" [(ngModel)]="produitCourant.categorie" name="categorie" placeholder="Carburant" />
+      </div>
+
+      <div class="form-group">
+        <label>Unité</label>
+        <input type="text" [(ngModel)]="produitCourant.unite" name="unite" placeholder="Litre, Prestation..." />
+      </div>
+
+      <div class="form-group" *ngIf="produitCourant.type === 'LIQUIDE'">
+        <label>Commission fixe (FCFA / litre)</label>
+        <input type="number" step="1" [(ngModel)]="produitCourant.commissionFixe" name="commissionFixe" placeholder="5" />
+      </div>
+
+      <div class="form-group" *ngIf="produitCourant.type === 'NON_LIQUIDE'">
+        <label>Commission (%)</label>
+        <input type="number" step="0.1" [(ngModel)]="produitCourant.commissionPourcentage" name="commissionPourcentage" placeholder="10" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="produitCourant.obligatoire" name="obligatoire" />
+          <span>Produit obligatoire (ne pourra pas être désactivé)</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModalProduit()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ modeEdition ? 'Enregistrer' : 'Ajouter' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- MODAL PRIX -->
+<!-- MODAL PRIX -->
+<div class="modal-overlay" *ngIf="modalPrixOuvert" (click)="fermerModalPrix()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Définir un prix</h2>
+    <p class="modal-subtitle" *ngIf="produitPourPrix">{{ produitPourPrix.nom }}</p>
+
+    <div class="info-box">
+      💡 Par défaut, ce prix s'applique à partir d'aujourd'hui. Vous pouvez le programmer pour une date future, avec ou sans date de fin.
+    </div>
+
+    <div class="erreur" *ngIf="erreurPrix">{{ erreurPrix }}</div>
+
+    <form (ngSubmit)="enregistrerPrix()">
+
+      <div class="form-group">
+        <label>Prix TTC (FCFA)</label>
+        <input type="number" step="1" [(ngModel)]="prixCourant.prixTtc" name="prixTtc" placeholder="850" />
+      </div>
+
+      <div class="form-group">
+        <label>Prix HTVA (FCFA)</label>
+        <input type="number" step="1" [(ngModel)]="prixCourant.prixHtva" name="prixHtva" placeholder="720" />
+      </div>
+
+      <div class="form-group">
+        <label>Prix HTT (FCFA)</label>
+        <input type="number" step="1" [(ngModel)]="prixCourant.prixHtt" name="prixHtt" placeholder="650" />
+      </div>
+
+      <div class="form-group">
+        <label>Date de début</label>
+        <input type="date" [(ngModel)]="prixCourant.dateDebut" name="dateDebut" />
+      </div>
+
+      <div class="form-group">
+        <label>Date de fin (optionnel — laisser vide si indéterminée)</label>
+        <input type="date" [(ngModel)]="prixCourant.dateFin" name="dateFin" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModalPrix()">Annuler</button>
+        <button type="submit" class="btn-primary">Enregistrer le prix</button>
+      </div>
+
+    </form>
+
+    <div class="programmation" *ngIf="programmation.length > 0">
+      <h3>Programmation des prix</h3>
+      <table class="table-programmation">
+        <thead>
+          <tr>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>TTC</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of programmation" [class.ligne-en-vigueur]="p.enVigueurAujourdHui">
+            <td>{{ p.dateDebut }}</td>
+            <td>{{ p.dateFin || '—' }}</td>
+            <td>{{ formatPrix(p.prixTtc) }}</td>
+            <td>
+              <span class="badge-en-vigueur" *ngIf="p.enVigueurAujourdHui">En vigueur</span>
+              <span class="badge-programme" *ngIf="!p.enVigueurAujourdHui">Programmé</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+

@@ -1,0 +1,52 @@
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⛽</div>
+      <div class="brand-info">
+        <span class="brand-name">CardOil</span>
+        <span class="brand-role">Gérant</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/gerant/dashboard" class="nav-item" routerLinkActive="active">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/gerant/transactions" class="nav-item" routerLinkActive="active">
+        <span class="nav-icon">💳</span>
+        <span>Transactions</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sign-out" (click)="logout()">→ Sign Out</button>
+      <div class="user-info">
+        <div class="user-avatar">{{ prenom.charAt(0) }}{{ nom.charAt(0) }}</div>
+        <div class="user-details">
+          <span class="user-name">{{ prenom }} {{ nom }}</span>
+          <span class="user-role">Gérant de station</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span class="breadcrumb-root">CardOil</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current">Espace Gérant</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar">{{ prenom.charAt(0) }}{{ nom.charAt(0) }}</div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+</div>

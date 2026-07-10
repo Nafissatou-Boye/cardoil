@@ -1,0 +1,125 @@
+<div class="page-header">
+  <div>
+    <h1>Mes Stations</h1>
+    <p>Gérez les stations-service de votre compagnie</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter une station</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Adresse</th>
+        <th>Coordonnées</th>
+        <th>Téléphone</th>
+        <th>Gérant</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let station of listeStations">
+        <td class="nom-station">{{ station.nom }}</td>
+        <td class="adresse-cell">{{ station.adresse }}</td>
+        <td class="coords-cell">{{ station.latitude }}, {{ station.longitude }}</td>
+        <td>{{ station.telephone || '—' }}</td>
+        <td>{{ station.gerantNom || '—' }}</td>
+        <td>
+          <span class="statut" [class.actif]="station.actif" [class.inactif]="!station.actif">
+            {{ station.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirEdition(station)" title="Modifier">✏️</button>
+          <button class="btn-icon danger" (click)="supprimer(station)" title="Supprimer">🗑️</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="listeStations.length === 0">
+        <td colspan="7" class="empty-cell">Aucune station enregistrée</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier la station' : 'Ajouter une station' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-group">
+        <label>Nom de la station *</label>
+        <input type="text" [(ngModel)]="stationCourante.nom" name="nom"
+               placeholder="Station Total Almadies" required />
+      </div>
+
+      <div class="form-group">
+        <label>Adresse *</label>
+        <div class="adresse-row">
+          <input type="text" [(ngModel)]="stationCourante.adresse" name="adresse"
+                 placeholder="Route des Almadies, Dakar" required />
+          <button type="button" class="btn-localiser"
+                  (click)="localiserAdresse()"
+                  [disabled]="localisationEnCours">
+            {{ localisationEnCours ? '⏳' : '📍' }}
+            {{ localisationEnCours ? 'Localisation...' : 'Localiser' }}
+          </button>
+        </div>
+        <span class="localisation-erreur" *ngIf="localisationErreur">{{ localisationErreur }}</span>
+      </div>
+
+      <!-- Coordonnées : affichées en lecture seule si trouvées, sinon champs manuels -->
+      <div class="coords-found" *ngIf="stationCourante.latitude && stationCourante.longitude">
+        <div class="coords-badge">
+          📍 {{ stationCourante.latitude }}, {{ stationCourante.longitude }}
+          <button type="button" class="btn-reset-coords"
+                  (click)="stationCourante.latitude = null; stationCourante.longitude = null"
+                  title="Modifier manuellement">✕</button>
+        </div>
+      </div>
+
+      <div class="form-row" *ngIf="!stationCourante.latitude || !stationCourante.longitude">
+        <div class="form-group">
+          <label>Latitude <span class="label-hint">(optionnel si adresse localisée)</span></label>
+          <input type="number" step="0.000001" [(ngModel)]="stationCourante.latitude"
+                 name="latitude" placeholder="14.7397" />
+        </div>
+        <div class="form-group">
+          <label>Longitude <span class="label-hint">(optionnel si adresse localisée)</span></label>
+          <input type="number" step="0.000001" [(ngModel)]="stationCourante.longitude"
+                 name="longitude" placeholder="-17.5125" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Téléphone</label>
+        <input type="text" [(ngModel)]="stationCourante.telephone" name="telephone"
+               placeholder="+221338222222" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="stationCourante.actif" name="actif" />
+          <span>Station active</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -1,0 +1,118 @@
+<div class="page-header">
+  <div>
+    <h1>Administrateurs</h1>
+    <p>Gérez les comptes Admin Compagnie de la plateforme</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un administrateur</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Login</th>
+        <th>Nom complet</th>
+        <th>Email</th>
+        <th>Compagnie</th>
+        <th>Création</th>
+        <th>Dernière connexion</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let a of listeAdmins">
+        <td><span class="login-badge">{{ a.login }}</span></td>
+        <td class="nom-cell">{{ a.prenom }} {{ a.nom }}</td>
+        <td>{{ a.email }}</td>
+        <td>
+          <span class="compagnie-tag" *ngIf="a.compagnieNom">{{ a.compagnieNom }}</span>
+          <span class="no-compagnie" *ngIf="!a.compagnieNom">—</span>
+        </td>
+        <td class="date-cell">{{ formatDate(a.dateCreation) }}</td>
+        <td class="date-cell">{{ a.derniereConnexion ? formatDate(a.derniereConnexion) : '—' }}</td>
+        <td>
+          <span class="statut" [class.actif]="a.actif" [class.inactif]="!a.actif">
+            {{ a.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="btn-icon" (click)="ouvrirEdition(a)" title="Modifier">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn-icon" [class.warning]="a.actif" [class.success]="!a.actif"
+                  (click)="toggleActif(a)" [title]="a.actif ? 'Désactiver' : 'Activer'">
+            <span class="material-icons">{{ a.actif ? 'pause' : 'play_arrow' }}</span>
+          </button>
+          <button class="btn-icon danger" (click)="supprimer(a)" title="Supprimer">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="listeAdmins.length === 0">
+        <td colspan="8" class="empty-cell">Aucun administrateur enregistré</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier l\'administrateur' : 'Ajouter un administrateur' }}</h2>
+
+    <div class="info-box" *ngIf="!modeEdition">
+      📧 Le login et le mot de passe seront générés automatiquement et envoyés par email.
+    </div>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" [(ngModel)]="adminCourant.prenom" name="prenom"
+                 placeholder="Moussa" required />
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="adminCourant.nom" name="nom"
+                 placeholder="Diallo" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" [(ngModel)]="adminCourant.email" name="email"
+               placeholder="moussa.diallo@compagnie.sn" required />
+      </div>
+
+      <div class="form-group">
+        <label>Compagnie *</label>
+        <select [(ngModel)]="adminCourant.compagnieId" name="compagnieId" required>
+          <option [ngValue]="null">— Sélectionner une compagnie —</option>
+          <option *ngFor="let c of listeCompagnies" [ngValue]="c.id">{{ c.nom }}</option>
+        </select>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="adminCourant.actif" name="actif" />
+          <span>Compte actif</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
