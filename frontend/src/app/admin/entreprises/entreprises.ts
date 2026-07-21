@@ -17,12 +17,10 @@ export class EntreprisesComponent implements OnInit {
   erreur = '';
   enregistrement = false;
 
-  // Modal entreprise
   modalOuvert = false;
   modeEdition = false;
   entrepriseCourante: Entreprise = this.nouvelleEntreprise();
 
-  // Modal admin
   modalAdminOuvert = false;
   entreprisePourAdmin: Entreprise | null = null;
   adminExistant: AdminEntrepriseInfo | null = null;
@@ -30,6 +28,14 @@ export class EntreprisesComponent implements OnInit {
   erreurAdmin = '';
   enregistrementAdmin = false;
   chargementAdmin = false;
+  modeRemplacement = false;
+
+  // ===== Créditer solde =====
+  modalCrediterOuvert = false;
+  entreprisePourCrediter: Entreprise | null = null;
+  montantCredit: number = 0;
+  erreurCredit = '';
+  enregistrementCredit = false;
 
   constructor(
     private adminEntrepriseService: AdminEntrepriseService,
@@ -170,31 +176,63 @@ export class EntreprisesComponent implements OnInit {
     });
   }
 
-  modeRemplacement = false;
+  basculerRemplacement(): void {
+    this.modeRemplacement = !this.modeRemplacement;
+    this.formAdmin = { nom: '', prenom: '', email: '' };
+    this.erreurAdmin = '';
+  }
 
-basculerRemplacement(): void {
-  this.modeRemplacement = !this.modeRemplacement;
-  this.formAdmin = { nom: '', prenom: '', email: '' };
-  this.erreurAdmin = '';
-}
+  remplacerAdmin(): void {
+    if (this.enregistrementAdmin || !this.entreprisePourAdmin?.id) return;
+    this.enregistrementAdmin = true;
+    this.erreurAdmin = '';
 
-remplacerAdmin(): void {
-  if (this.enregistrementAdmin || !this.entreprisePourAdmin?.id) return;
-  this.enregistrementAdmin = true;
-  this.erreurAdmin = '';
+    this.adminEntrepriseService.remplacerAdmin(this.entreprisePourAdmin.id, this.formAdmin).subscribe({
+      next: (data) => {
+        this.enregistrementAdmin = false;
+        this.modeRemplacement = false;
+        this.adminExistant = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.enregistrementAdmin = false;
+        this.erreurAdmin = err.error?.erreur || 'Une erreur est survenue';
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
-  this.adminEntrepriseService.remplacerAdmin(this.entreprisePourAdmin.id, this.formAdmin).subscribe({
-    next: (data) => {
-      this.enregistrementAdmin = false;
-      this.modeRemplacement = false;
-      this.adminExistant = data;
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      this.enregistrementAdmin = false;
-      this.erreurAdmin = err.error?.erreur || 'Une erreur est survenue';
-      this.cdr.detectChanges();
-    }
-  });
-}
+  // ===== CRÉDITER SOLDE =====
+
+  ouvrirCrediter(entreprise: Entreprise): void {
+    this.entreprisePourCrediter = entreprise;
+    this.montantCredit = 0;
+    this.erreurCredit = '';
+    this.enregistrementCredit = false;
+    this.modalCrediterOuvert = true;
+  }
+
+  fermerModalCrediter(): void {
+    this.modalCrediterOuvert = false;
+    this.entreprisePourCrediter = null;
+  }
+
+  confirmerCredit(): void {
+    if (this.enregistrementCredit || !this.entreprisePourCrediter?.id) return;
+    this.enregistrementCredit = true;
+    this.erreurCredit = '';
+
+    this.adminEntrepriseService.crediterSolde(this.entreprisePourCrediter.id, this.montantCredit).subscribe({
+      next: () => {
+        this.enregistrementCredit = false;
+        this.fermerModalCrediter();
+        this.charger();
+      },
+      error: (err) => {
+        this.enregistrementCredit = false;
+        this.erreurCredit = err.error?.erreur || err.error?.message || 'Une erreur est survenue';
+        this.cdr.detectChanges();
+      }
+    });
+  }
 }

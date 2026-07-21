@@ -1,0 +1,146 @@
+<div class="page-header">
+  <button class="btn-retour" (click)="retour()">
+    <span class="material-icons">arrow_back</span>
+    Retour
+  </button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+<div *ngIf="erreur" class="erreur">{{ erreur }}</div>
+
+<div *ngIf="!chargement && utilisateur">
+
+  <!-- EN-TÊTE IDENTITÉ -->
+  <div class="identite-card">
+    <div class="identite-avatar">{{ utilisateur.prenom.charAt(0) }}{{ utilisateur.nom.charAt(0) }}</div>
+    <div class="identite-info">
+      <h2>{{ utilisateur.prenom }} {{ utilisateur.nom }}</h2>
+      <div class="identite-badges">
+        <span class="role-badge" [class.employe]="utilisateur.role === 'EMPLOYE'" [class.admin]="utilisateur.role === 'ADMIN_DEPARTEMENT'">
+          {{ labelRole(utilisateur.role) }}
+        </span>
+        <span class="statut-badge" [class.actif]="utilisateur.actif" [class.inactif]="!utilisateur.actif">
+          {{ utilisateur.actif ? 'Actif' : 'Inactif' }}
+        </span>
+        <span class="login-badge" *ngIf="utilisateur.matricule">{{ utilisateur.matricule }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFOS GÉNÉRALES -->
+  <div class="section-title">Informations</div>
+  <div class="infos-grid">
+    <div class="info-item">
+      <span class="material-icons info-icon">email</span>
+      <div>
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ utilisateur.email }}</span>
+      </div>
+    </div>
+    <div class="info-item" *ngIf="utilisateur.telephone">
+      <span class="material-icons info-icon">phone</span>
+      <div>
+        <span class="info-label">Téléphone</span>
+        <span class="info-value">{{ utilisateur.telephone }}</span>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="material-icons info-icon">key</span>
+      <div>
+        <span class="info-label">Login</span>
+        <span class="info-value monospace">{{ utilisateur.login }}</span>
+      </div>
+    </div>
+    <div class="info-item" *ngIf="utilisateur.departementNom">
+      <span class="material-icons info-icon">apartment</span>
+      <div>
+        <span class="info-label">Département</span>
+        <span class="info-value">{{ utilisateur.departementNom }}</span>
+      </div>
+    </div>
+    <div class="info-item" *ngIf="!utilisateur.departementNom && utilisateur.role === 'EMPLOYE'">
+      <span class="material-icons info-icon">apartment</span>
+      <div>
+        <span class="info-label">Département</span>
+        <span class="info-value">Rattaché directement à l'entreprise</span>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="material-icons info-icon">calendar_today</span>
+      <div>
+        <span class="info-label">Membre depuis</span>
+        <span class="info-value">{{ utilisateur.dateCreation }}</span>
+      </div>
+    </div>
+    <div class="info-item" *ngIf="utilisateur.derniereConnexion">
+      <span class="material-icons info-icon">login</span>
+      <div>
+        <span class="info-label">Dernière connexion</span>
+        <span class="info-value">{{ utilisateur.derniereConnexion }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOC ADMIN DÉPARTEMENT -->
+  <div *ngIf="utilisateur.role === 'ADMIN_DEPARTEMENT'">
+    <div class="section-title">Département géré</div>
+    <div class="carte-detail">
+      <div class="carte-detail-header">
+        <span class="material-icons" style="font-size: 1.5rem; color: #a855f7;">apartment</span>
+        <div>
+          <strong>{{ utilisateur.departementGereNom }}</strong>
+          <span class="sous-texte">{{ utilisateur.nombreEmployesDepartementGere }} employé(s) dans ce département</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOC CARTE (EMPLOYÉ) -->
+  <div *ngIf="utilisateur.role === 'EMPLOYE'">
+    <div class="section-title">Carte</div>
+
+    <div class="carte-detail" *ngIf="utilisateur.carte">
+      <div class="carte-detail-header">
+        <span class="material-icons" style="font-size: 1.5rem; color: #3b82f6;">credit_card</span>
+        <div>
+          <strong>{{ utilisateur.carte.numeroCarte }}</strong>
+          <span class="sous-texte">{{ utilisateur.carte.sourceFinancement }}</span>
+        </div>
+        <span class="statut-badge" [class.actif]="utilisateur.carte.statut === 'ACTIVE'" [class.inactif]="utilisateur.carte.statut !== 'ACTIVE'" style="margin-left: auto;">
+          {{ utilisateur.carte.statut }}
+        </span>
+      </div>
+      <div class="carte-detail-body">
+        <div class="carte-stat">
+          <span class="carte-stat-value">{{ utilisateur.carte.solde }} FCFA</span>
+          <span class="carte-stat-label">Solde actuel</span>
+        </div>
+        <div class="carte-stat" *ngIf="utilisateur.carte.montantDotationMensuelle">
+          <span class="carte-stat-value">{{ utilisateur.carte.montantDotationMensuelle }} FCFA</span>
+          <span class="carte-stat-label">Dotation mensuelle (le {{ utilisateur.carte.dateRenouvellement }})</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!utilisateur.carte">
+      <div class="empty-icon">💳</div>
+      <p>Aucune carte créée</p>
+      <span>Rendez-vous dans "Mes Cartes" pour en créer une</span>
+    </div>
+
+    <!-- HISTORIQUE RECHARGES -->
+    <div *ngIf="utilisateur.historiqueRecharges && utilisateur.historiqueRecharges.length > 0">
+      <div class="section-title">Historique des recharges</div>
+      <div class="recharge-item" *ngFor="let r of utilisateur.historiqueRecharges">
+        <span class="material-icons" [style.color]="r.type === 'DOTATION' ? '#8b5cf6' : (r.type === 'GROUPEE' ? '#f59e0b' : '#10b981')">
+          {{ r.type === 'DOTATION' ? 'autorenew' : (r.type === 'GROUPEE' ? 'folder' : 'payments') }}
+        </span>
+        <div class="recharge-info">
+          <strong>+{{ r.montant }} FCFA</strong>
+          <span>{{ r.dateRecharge }} — {{ r.effectuePar }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

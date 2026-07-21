@@ -37,6 +37,22 @@ export const routes: Routes = [
       import('./gerant/gerant.routes').then(m => m.GERANT_ROUTES)
   },
 
+  // Routes Admin Entreprise
+  {
+    path: 'entreprise',
+    canActivate: [authGuard, roleGuard(['ADMIN_ENTREPRISE'])],
+    loadChildren: () =>
+      import('./entreprise/entreprise.routes').then(m => m.ENTREPRISE_ROUTES)
+  },
+
+  // Routes Admin Département
+  {
+    path: 'departement',
+    canActivate: [authGuard, roleGuard(['ADMIN_DEPARTEMENT'])],
+    loadChildren: () =>
+      import('./departement/departement.routes').then(m => m.DEPARTEMENT_ROUTES)
+  },
+
   // Page non autorisée
   {
     path: 'non-autorise',

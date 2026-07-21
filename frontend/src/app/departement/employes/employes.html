@@ -1,0 +1,121 @@
+<div class="page-header">
+  <div>
+    <h1>Mes Employés</h1>
+    <p>Employés de votre département</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un employé</button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="entreprises-grid">
+
+  <div class="entreprise-card" *ngFor="let e of listeEmployes" [class.inactif]="!e.actif">
+    <div class="card-header">
+      <div class="entreprise-avatar">{{ e.prenom.charAt(0) }}{{ e.nom.charAt(0) }}</div>
+      <div class="card-info">
+        <h3>{{ e.prenom }} {{ e.nom }}</h3>
+        <span class="code-badge">{{ e.matricule }}</span>
+      </div>
+      <span class="statut-badge" [class.actif]="e.actif" [class.inactif]="!e.actif">
+        {{ e.actif ? 'Actif' : 'Inactif' }}
+      </span>
+    </div>
+
+    <div class="card-details">
+      <div class="detail-item">
+        <span class="material-icons detail-icon">credit_card</span>
+        <span *ngIf="e.possedeUneCarte">Carte créée</span>
+        <span *ngIf="!e.possedeUneCarte">Pas encore de carte — voir "Mes Cartes"</span>
+      </div>
+      <div class="detail-item" *ngIf="e.email">
+        <span class="material-icons detail-icon">email</span>
+        <span>{{ e.email }}</span>
+      </div>
+      <div class="detail-item" *ngIf="e.login">
+        <span class="material-icons detail-icon">key</span>
+        <span>Login : {{ e.login }}</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn-action" (click)="ouvrirEdition(e)">✏️ Modifier</button>
+      <button class="btn-action danger" (click)="supprimer(e)">🗑️ Supprimer</button>
+    </div>
+  </div>
+
+  <div *ngIf="listeEmployes.length === 0" class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>Aucun employé enregistré</p>
+    <span>Ajoutez des employés à votre département</span>
+  </div>
+
+</div>
+
+<!-- MODAL EMPLOYÉ -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier l\'employé' : 'Ajouter un employé' }}</h2>
+
+    <div class="credentials-box" *ngIf="dernierEmployeCree?.motDePasseTemporaire">
+      <h4>🔐 Identifiants générés</h4>
+      <div class="credential-item">
+        <span class="credential-label">Login</span>
+        <span class="credential-valeur">{{ dernierEmployeCree?.login }}</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">Mot de passe temporaire</span>
+        <span class="credential-valeur">{{ dernierEmployeCree?.motDePasseTemporaire }}</span>
+      </div>
+      <p class="credential-note">⚠️ Ces identifiants ont aussi été envoyés par email.</p>
+    </div>
+
+    <div class="modal-actions" *ngIf="dernierEmployeCree?.motDePasseTemporaire">
+      <button class="btn-secondary" (click)="fermerModal()">Fermer</button>
+    </div>
+
+    <div *ngIf="!dernierEmployeCree?.motDePasseTemporaire">
+      <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+      <form (ngSubmit)="enregistrer()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="employeCourant.prenom" name="prenom" placeholder="Awa" required />
+          </div>
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="employeCourant.nom" name="nom" placeholder="Diallo" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="employeCourant.email" name="email" placeholder="awa.diallo@entreprise.sn" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="text" [(ngModel)]="employeCourant.telephone" name="telephone" placeholder="+221770000000" />
+          </div>
+          <div class="form-group">
+            <label>Matricule</label>
+            <input type="text" [(ngModel)]="employeCourant.matricule" name="matricule" placeholder="Auto-généré si vide" />
+          </div>
+        </div>
+
+        <div class="info-box" style="margin-bottom: 1.25rem;" *ngIf="!modeEdition">
+          📧 Le login et le mot de passe seront générés automatiquement et envoyés par email.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="fermerModal()" [disabled]="enregistrement">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="enregistrement">
+            {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

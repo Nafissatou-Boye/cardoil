@@ -55,6 +55,7 @@ public PersonnelResponse createAdminEntreprise(String login, Long entrepriseId, 
             .prenom(request.getPrenom())
             .email(request.getEmail())
             .actif(true)
+            .doitChangerMotDePasse(true)
             .compagnie(compagnie)
             .entreprise(entreprise)
             .build();
@@ -111,6 +112,7 @@ public PersonnelResponse createAdminEntreprise(String login, Long entrepriseId, 
                 .prenom(request.getPrenom())
                 .email(request.getEmail())
                 .actif(request.isActif())
+                .doitChangerMotDePasse(true)
                 .compagnie(compagnie)
                 .build();
 
@@ -294,6 +296,7 @@ public PersonnelResponse remplacerAdminEntreprise(String login, Long entrepriseI
             .prenom(request.getPrenom())
             .email(request.getEmail())
             .actif(true)
+            .doitChangerMotDePasse(true)
             .compagnie(compagnie)
             .entreprise(entreprise)
             .build();

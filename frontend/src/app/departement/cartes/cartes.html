@@ -1,0 +1,169 @@
+<div class="page-header">
+  <div>
+    <h1>Mes Cartes</h1>
+    <p>Cartes des employés de votre département</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()" [disabled]="employesSansCarte.length === 0">
+    + Créer une carte
+  </button>
+</div>
+
+<div class="info-box" style="margin-bottom: 1.25rem;" *ngIf="!chargement && employesSansCarte.length === 0 && listeCartes.length > 0">
+  ℹ️ Tous les employés de votre département possèdent déjà une carte.
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="entreprises-grid">
+
+  <div class="entreprise-card" *ngFor="let c of listeCartes" [class.inactif]="c.statut !== 'ACTIVE'">
+    <div class="card-header">
+      <div class="entreprise-avatar">💳</div>
+      <div class="card-info">
+        <h3>{{ c.employeNomComplet }}</h3>
+        <span class="code-badge">{{ c.numeroCarte }}</span>
+      </div>
+      <span class="statut-badge" [class.actif]="c.statut === 'ACTIVE'" [class.inactif]="c.statut !== 'ACTIVE'">
+        {{ c.statut }}
+      </span>
+    </div>
+
+    <div class="card-details">
+      <div class="detail-item">
+        <span class="material-icons detail-icon">credit_card</span>
+        <span>{{ labelTypeCarte(c.typeCarte) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="material-icons detail-icon">account_balance_wallet</span>
+        <span>Solde : {{ c.solde }} FCFA</span>
+      </div>
+      <div class="detail-item" *ngIf="c.montantDotationMensuelle">
+        <span class="material-icons detail-icon">event_repeat</span>
+        <span>Dotation : {{ c.montantDotationMensuelle }} FCFA / mois (le {{ c.dateRenouvellement }})</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn-action" (click)="ouvrirRecharge(c)" *ngIf="c.statut === 'ACTIVE'">💰 Recharger</button>
+      <button class="btn-action" (click)="ouvrirHistorique(c)">🕓 Historique</button>
+      <button class="btn-action" *ngFor="let s of transitionsPossibles(c.statut)"
+              [class.warning]="s === 'SUSPENDUE'" [class.danger]="s === 'BLOQUEE' || s === 'EXPIREE'" [class.success]="s === 'ACTIVE'"
+              (click)="changerStatut(c, s)">
+        {{ labelStatut(s) }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="listeCartes.length === 0" class="empty-state">
+    <div class="empty-icon">💳</div>
+    <p>Aucune carte créée</p>
+    <span>Créez une carte pour chaque employé de votre département</span>
+  </div>
+
+</div>
+
+<!-- MODAL CRÉATION CARTE -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Créer une carte</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+      <div class="form-group">
+        <label>Employé *</label>
+        <select [(ngModel)]="carteCourante.employeId" name="employeId" required class="select-field">
+          <option [ngValue]="0" disabled>Choisir un employé</option>
+          <option *ngFor="let e of employesSansCarte" [value]="e.id">{{ e.prenom }} {{ e.nom }} ({{ e.matricule }})</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Type de carte *</label>
+        <select [(ngModel)]="carteCourante.typeCarte" name="typeCarte" required class="select-field">
+          <option *ngFor="let t of typesCarteDisponibles" [value]="t.valeur">{{ t.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="estDotation">
+        <label>Montant de dotation mensuelle (FCFA) *</label>
+        <input type="number" [(ngModel)]="carteCourante.montantDotationMensuelle" name="montantDotationMensuelle" min="1" step="1000" required />
+      </div>
+
+      <div class="form-group" *ngIf="estDotation">
+        <label>Jour de renouvellement (1-28) *</label>
+        <input type="number" [(ngModel)]="carteCourante.dateRenouvellement" name="dateRenouvellement" min="1" max="28" required />
+      </div>
+
+      <div class="form-group" *ngIf="estDotationAvecReport">
+        <label>Plafond cumulé maximum (FCFA)</label>
+        <input type="number" [(ngModel)]="carteCourante.plafondCumuleMax" name="plafondCumuleMax" min="0" step="1000" placeholder="Optionnel" />
+      </div>
+
+      <div class="form-group">
+        <label>Date d'expiration</label>
+        <input type="date" [(ngModel)]="carteCourante.dateExpiration" name="dateExpiration" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()" [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement || !carteCourante.employeId">
+          {{ enregistrement ? 'Création...' : 'Créer la carte' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL RECHARGE -->
+<div class="modal-overlay" *ngIf="modalRechargeOuvert" (click)="fermerModalRecharge()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Recharger — {{ carteARecharger?.employeNomComplet }}</h2>
+
+    <div class="erreur" *ngIf="erreurRecharge">{{ erreurRecharge }}</div>
+
+    <div class="info-box" style="margin-bottom: 1.25rem;">
+      Solde actuel : {{ carteARecharger?.solde }} FCFA<br>
+      Prélevé sur le budget de votre département.
+    </div>
+
+    <div class="form-group">
+      <label>Montant à ajouter (FCFA) *</label>
+      <input type="number" [(ngModel)]="montantRecharge" name="montantRecharge" min="1" step="500" />
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="fermerModalRecharge()" [disabled]="enregistrementRecharge">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="enregistrementRecharge || montantRecharge < 1" (click)="confirmerRecharge()">
+        {{ enregistrementRecharge ? 'Rechargement...' : 'Confirmer la recharge' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIQUE -->
+<div class="modal-overlay" *ngIf="modalHistoriqueOuvert" (click)="fermerModalHistorique()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Historique des recharges</h2>
+
+    <div *ngIf="chargementHistorique" class="chargement">Chargement...</div>
+    <div *ngIf="!chargementHistorique && historiqueRecharges.length === 0" class="empty-state" style="padding: 2rem;">
+      <span>Aucune recharge enregistrée pour cette carte</span>
+    </div>
+
+    <div class="credentials-box" *ngFor="let r of historiqueRecharges" style="margin-bottom: 0.75rem;">
+      <div class="credential-item">
+        <span class="credential-label">{{ r.type === 'MANUELLE' ? '💰 Recharge manuelle' : (r.type === 'GROUPEE' ? '📁 Recharge groupée' : '🔄 Dotation automatique') }}</span>
+        <span class="credential-valeur">+{{ r.montant }} FCFA</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">{{ r.dateRecharge }}</span>
+        <span class="credential-label">{{ r.effectuePar }}</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="fermerModalHistorique()">Fermer</button>
+    </div>
+  </div>
+</div>

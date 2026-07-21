@@ -43,4 +43,10 @@ public class Entreprise {
     public void prePersist() {
         this.dateCreation = LocalDateTime.now();
     }
+
+   
+@Builder.Default
+@Column(nullable = false, precision = 15, scale = 2)
+private java.math.BigDecimal soldeDisponible = java.math.BigDecimal.ZERO;
+
 }

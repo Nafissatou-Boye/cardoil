@@ -50,4 +50,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
 long countByStationIdAndDateTransactionBetweenAndStatut(
         Long stationId, LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
+
+        boolean existsByReference(String reference);
 }

@@ -2,13 +2,15 @@ package cardoil.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "utilisateurs")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Utilisateur {
@@ -17,7 +19,7 @@ public class Utilisateur {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 7)
+    @Column(unique = true, nullable = false, length = 20)
     private String login;
 
     @Column(nullable = false)
@@ -27,13 +29,10 @@ public class Utilisateur {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = false)
     private String nom;
 
-    @Column(nullable = false)
     private String prenom;
 
-    @Column(nullable = false)
     private String email;
 
     @Builder.Default
@@ -62,11 +61,22 @@ public class Utilisateur {
     }
 
     @Builder.Default
-private boolean doitChangerMotDePasse = false;
+    private boolean doitChangerMotDePasse = false;
 
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "entreprise_id")
-@ToString.Exclude
-@EqualsAndHashCode.Exclude
-private Entreprise entreprise;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entreprise_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Entreprise entreprise;
+
+    // Utilisé uniquement pour les comptes ADMIN_DEPARTEMENT : le département
+    // que cet utilisateur gère. Nommé différemment de Employe.departement
+    // pour éviter toute collision de nom entre parent/enfant (cf. bug entreprise).
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "departement_gere_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Departement departementGere;
+
+    
 }

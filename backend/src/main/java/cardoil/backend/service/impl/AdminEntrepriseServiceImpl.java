@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -115,6 +116,20 @@ public AdminEntrepriseInfoResponse getAdmin(String login, Long entrepriseId) {
         return toResponse(entrepriseRepository.save(entreprise));
     }
 
+    @Override
+    public EntrepriseResponse crediterSolde(String login, Long id, BigDecimal montant) {
+        Compagnie compagnie = getCompagnie(login);
+        Entreprise entreprise = entrepriseRepository.findByIdAndCompagnieId(id, compagnie.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Entreprise non trouvée"));
+
+        if (montant == null || montant.compareTo(BigDecimal.ONE) < 0) {
+            throw new IllegalArgumentException("Le montant doit être d'au moins 1 FCFA");
+        }
+
+        entreprise.setSoldeDisponible(entreprise.getSoldeDisponible().add(montant));
+        return toResponse(entrepriseRepository.save(entreprise));
+    }
+
     private Compagnie getCompagnie(String login) {
         Utilisateur utilisateur = utilisateurRepository.findByLogin(login)
                 .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
@@ -137,6 +152,7 @@ public AdminEntrepriseInfoResponse getAdmin(String login, Long entrepriseId) {
                 .dateCreation(e.getDateCreation() != null
                         ? e.getDateCreation().format(FORMATTER) : null)
                 .compagnieNom(e.getCompagnie().getNom())
+                .soldeDisponible(e.getSoldeDisponible())
                 .build();
     }
 }

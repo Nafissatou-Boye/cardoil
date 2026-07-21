@@ -1,0 +1,150 @@
+<div class="page-header">
+  <div>
+    <h1>Rapports</h1>
+    <p>Suivi budgétaire, consommation et historique des recharges</p>
+  </div>
+</div>
+
+<div class="onglets">
+  <button class="onglet-btn" [class.actif]="ongletActif === 'BUDGET'" (click)="changerOnglet('BUDGET')">
+    💰 Suivi budget
+  </button>
+  <button class="onglet-btn" [class.actif]="ongletActif === 'DEPARTEMENTS'" (click)="changerOnglet('DEPARTEMENTS')">
+    🏢 Par département
+  </button>
+  <button class="onglet-btn" [class.actif]="ongletActif === 'EMPLOYES'" (click)="changerOnglet('EMPLOYES')">
+    👥 Par employé
+  </button>
+  <button class="onglet-btn" [class.actif]="ongletActif === 'HISTORIQUE'" (click)="changerOnglet('HISTORIQUE')">
+    🕓 Historique global
+  </button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<!-- ===== SUIVI BUDGET ===== -->
+<div *ngIf="!chargement && ongletActif === 'BUDGET' && suiviBudget">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        <span class="material-icons">savings</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ suiviBudget.soldeDisponibleEntreprise | number }}</span>
+        <span class="stat-label">FCFA — Non alloué (entreprise)</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+        <span class="material-icons">apartment</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ suiviBudget.totalBudgetAlloueDepartements | number }}</span>
+        <span class="stat-label">FCFA — Alloué aux départements</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+        <span class="material-icons">credit_card</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ suiviBudget.totalSoldeCartesActives | number }}</span>
+        <span class="stat-label">FCFA — Sur les cartes actives</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Taux d'allocation du budget entreprise</div>
+  <div class="barre-progression-container">
+    <div class="barre-progression">
+      <div class="barre-progression-fill" [style.width.%]="tauxAllocation"></div>
+    </div>
+    <span class="barre-progression-label">{{ tauxAllocation }}% alloué aux départements</span>
+  </div>
+
+  <div class="info-box" style="margin-top: 1.5rem;">
+    ℹ️ Ces chiffres reflètent les soldes et budgets actuels. Le suivi de la consommation réelle en station
+    (débit des cartes lors des transactions carburant) nécessite le module Transactions, non encore relié à ce tableau.
+  </div>
+</div>
+
+<!-- ===== PAR DÉPARTEMENT ===== -->
+<div *ngIf="!chargement && ongletActif === 'DEPARTEMENTS'" class="table-container">
+  <table class="tableau-rapport">
+    <thead>
+      <tr>
+        <th>Département</th>
+        <th>Employés</th>
+        <th>Budget disponible</th>
+        <th>Solde cumulé (cartes actives)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let d of rapportDepartements">
+        <td><strong>{{ d.departementNom }}</strong></td>
+        <td>{{ d.nombreEmployes }}</td>
+        <td>{{ d.budgetDisponible | number }} FCFA</td>
+        <td>{{ d.soldeCumuleCartes | number }} FCFA</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="rapportDepartements.length === 0" class="empty-state">
+    <div class="empty-icon">🏢</div>
+    <p>Aucun département</p>
+  </div>
+</div>
+
+<!-- ===== PAR EMPLOYÉ ===== -->
+<div *ngIf="!chargement && ongletActif === 'EMPLOYES'" class="table-container">
+  <table class="tableau-rapport">
+    <thead>
+      <tr>
+        <th>Employé</th>
+        <th>Département</th>
+        <th>Carte</th>
+        <th>Statut</th>
+        <th>Solde actuel</th>
+        <th>Total crédité (historique)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let e of rapportEmployes">
+        <td><strong>{{ e.nomComplet }}</strong> <span class="sous-texte">{{ e.matricule }}</span></td>
+        <td>{{ e.departementNom }}</td>
+        <td class="monospace">{{ e.numeroCarte || '—' }}</td>
+        <td>
+          <span class="statut-badge" *ngIf="e.statutCarte" [class.actif]="e.statutCarte === 'ACTIVE'" [class.inactif]="e.statutCarte !== 'ACTIVE'">
+            {{ e.statutCarte }}
+          </span>
+          <span *ngIf="!e.statutCarte" class="sous-texte">Pas de carte</span>
+        </td>
+        <td>{{ e.soldeActuel | number }} FCFA</td>
+        <td>{{ e.totalCredite | number }} FCFA</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="rapportEmployes.length === 0" class="empty-state">
+    <div class="empty-icon">👥</div>
+    <p>Aucun employé</p>
+  </div>
+</div>
+
+<!-- ===== HISTORIQUE GLOBAL ===== -->
+<div *ngIf="!chargement && ongletActif === 'HISTORIQUE'">
+  <div class="recharge-item" *ngFor="let r of historiqueGlobal">
+    <span>{{ labelTypeRecharge(r.type) }}</span>
+    <div class="recharge-info">
+      <strong>+{{ r.montant | number }} FCFA</strong>
+      <span>{{ r.numeroCarte }} — {{ r.dateRecharge }} — {{ r.effectuePar }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="historiqueGlobal.length === 0" class="empty-state">
+    <div class="empty-icon">🕓</div>
+    <p>Aucune recharge enregistrée</p>
+  </div>
+</div>

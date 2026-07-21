@@ -1,1 +1,117 @@
-<p>dashboard works!</p>
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Vue d'ensemble de votre entreprise</p>
+  </div>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement">
+
+  <!-- STATS PRINCIPALES -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">
+        <span class="material-icons">people</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ nombreEmployes }}</span>
+        <span class="stat-label">Employés</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+        <span class="material-icons">apartment</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ nombreDepartements }}</span>
+        <span class="stat-label">Départements</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+        <span class="material-icons">account_balance_wallet</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ soldeTotal | number }}</span>
+        <span class="stat-label">FCFA — Solde total (cartes actives)</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        <span class="material-icons">savings</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ soldeDisponibleEntreprise | number }}</span>
+        <span class="stat-label">FCFA — Solde entreprise (non alloué)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUT DES CARTES -->
+  <div class="section-title">Statut des cartes</div>
+  <div class="stats-grid">
+    <div class="stat-card small">
+      <div class="stat-icon" style="background: #ecfdf5;">
+        <span class="material-icons" style="color: #10b981;">check_circle</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ cartesActives }}</span>
+        <span class="stat-label">Actives</span>
+      </div>
+    </div>
+
+    <div class="stat-card small">
+      <div class="stat-icon" style="background: #eff6ff;">
+        <span class="material-icons" style="color: #3b82f6;">pause_circle</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ cartesSuspendues }}</span>
+        <span class="stat-label">Suspendues</span>
+      </div>
+    </div>
+
+    <div class="stat-card small">
+      <div class="stat-icon" style="background: #fff1f2;">
+        <span class="material-icons" style="color: #ef4444;">block</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ cartesBloquees }}</span>
+        <span class="stat-label">Bloquées</span>
+      </div>
+    </div>
+
+    <div class="stat-card small">
+      <div class="stat-icon" style="background: #f3f4f6;">
+        <span class="material-icons" style="color: #9ca3af;">event_busy</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ cartesExpirees }}</span>
+        <span class="stat-label">Expirées</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTES SOLDE FAIBLE -->
+  <div class="section-title" *ngIf="cartesFaibles.length > 0">⚠️ Alertes — Soldes faibles (moins de 2000 FCFA)</div>
+  <div class="alertes-list" *ngIf="cartesFaibles.length > 0">
+    <div class="alerte-item" *ngFor="let c of cartesFaibles">
+      <span class="material-icons" style="color: #f59e0b;">warning</span>
+      <div class="alerte-info">
+        <strong>{{ c.employeNomComplet }}</strong>
+        <span>{{ c.numeroCarte }} — Solde : {{ c.solde }} FCFA</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="cartesFaibles.length === 0" style="margin-top: 2rem;">
+    <div class="empty-icon">✅</div>
+    <p>Aucune alerte</p>
+    <span>Toutes les cartes actives ont un solde suffisant</span>
+  </div>
+
+</div>

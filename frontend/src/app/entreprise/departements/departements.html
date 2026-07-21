@@ -1,0 +1,260 @@
+<div class="page-header">
+  <div>
+    <h1>Mes Départements</h1>
+    <p>Organisez vos employés par département</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirAjout()">+ Ajouter un département</button>
+</div>
+
+<div class="info-box" style="margin-bottom: 1.25rem;" *ngIf="infoEntreprise">
+  💰 Solde disponible de l'entreprise (non alloué) : <strong>{{ infoEntreprise.soldeDisponible }} FCFA</strong>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="entreprises-grid">
+
+  <div class="entreprise-card" *ngFor="let d of listeDepartements" [class.inactif]="!d.actif">
+    <div class="card-header">
+      <div class="entreprise-avatar">{{ d.nom.charAt(0) }}</div>
+      <div class="card-info">
+        <h3>{{ d.nom }}</h3>
+        <span class="code-badge">{{ d.nombreEmployes || 0 }} employé(s)</span>
+      </div>
+      <span class="statut-badge" [class.actif]="d.actif" [class.inactif]="!d.actif">
+        {{ d.actif ? 'Actif' : 'Inactif' }}
+      </span>
+    </div>
+
+    <div class="card-details">
+      <div class="detail-item" *ngIf="d.description">
+        <span class="material-icons detail-icon">description</span>
+        <span>{{ d.description }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="material-icons detail-icon">account_balance_wallet</span>
+        <span>Budget : {{ d.budget }} FCFA</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn-action admin" (click)="ouvrirAdmin(d)">
+        <span class="material-icons" style="font-size:0.9rem">manage_accounts</span>
+        Admin
+      </button>
+      <button class="btn-action success" (click)="ouvrirCrediter(d)">
+        <span class="material-icons" style="font-size:0.9rem">payments</span>
+        Créditer
+      </button>
+      <button class="btn-action" (click)="ouvrirEdition(d)">✏️ Modifier</button>
+      <button class="btn-action" [class.warning]="d.actif" [class.success]="!d.actif"
+              (click)="toggleActif(d)">
+        {{ d.actif ? '⏸️ Désactiver' : '▶️ Activer' }}
+      </button>
+      <button class="btn-action danger" (click)="supprimer(d)">🗑️ Supprimer</button>
+    </div>
+  </div>
+
+  <div *ngIf="listeDepartements.length === 0" class="empty-state">
+    <div class="empty-icon">🏢</div>
+    <p>Aucun département enregistré</p>
+    <span>Créez des départements pour organiser vos employés et leurs budgets</span>
+  </div>
+
+</div>
+
+<!-- MODAL DÉPARTEMENT -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>{{ modeEdition ? 'Modifier le département' : 'Ajouter un département' }}</h2>
+
+    <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
+
+    <form (ngSubmit)="enregistrer()">
+      <div class="form-group">
+        <label>Nom *</label>
+        <input type="text" [(ngModel)]="departementCourant.nom" name="nom"
+               placeholder="Direction commerciale" required />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" [(ngModel)]="departementCourant.description" name="description"
+               placeholder="Optionnel" />
+      </div>
+
+      <div class="form-group">
+        <label>Budget (FCFA)</label>
+        <input type="number" [(ngModel)]="departementCourant.budget" name="budget"
+               min="0" step="1000" />
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="departementCourant.actif" name="actif" />
+          <span>Département actif</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="fermerModal()"
+                [disabled]="enregistrement">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : (modeEdition ? 'Enregistrer' : 'Ajouter') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ADMIN DÉPARTEMENT -->
+<div class="modal-overlay" *ngIf="modalAdminOuvert" (click)="fermerModalAdmin()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Administrateur — {{ departementPourAdmin?.nom }}</h2>
+
+    <div *ngIf="chargementAdmin" class="chargement">Chargement...</div>
+
+    <!-- Admin existant -->
+    <div *ngIf="!chargementAdmin && adminExistant" class="admin-existant">
+
+      <div class="credentials-box" *ngIf="adminExistant.motDePasseTemporaire">
+        <h4>🔐 Identifiants générés</h4>
+        <div class="credential-item">
+          <span class="credential-label">Login</span>
+          <span class="credential-valeur">{{ adminExistant.login }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Mot de passe temporaire</span>
+          <span class="credential-valeur">{{ adminExistant.motDePasseTemporaire }}</span>
+        </div>
+        <p class="credential-note">⚠️ Ces identifiants ont aussi été envoyés par email. Notez-les maintenant, ils ne seront plus affichés.</p>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-avatar">{{ adminExistant.prenom.charAt(0) }}{{ adminExistant.nom.charAt(0) }}</div>
+        <div class="admin-info">
+          <strong>{{ adminExistant.prenom }} {{ adminExistant.nom }}</strong>
+          <span>{{ adminExistant.email }}</span>
+          <span class="login-badge">{{ adminExistant.login }}</span>
+        </div>
+        <span class="statut-badge" [class.actif]="adminExistant.actif" [class.inactif]="!adminExistant.actif">
+          {{ adminExistant.actif ? 'Actif' : 'Inactif' }}
+        </span>
+      </div>
+
+      <div *ngIf="!adminExistant.motDePasseTemporaire">
+        <div class="info-box" style="margin-top: 1rem;" *ngIf="!modeRemplacement">
+          ℹ️ Ce département a déjà un administrateur.
+          <button class="btn-changer" (click)="basculerRemplacement()">
+            🔄 Changer d'admin
+          </button>
+        </div>
+
+        <div *ngIf="modeRemplacement" style="margin-top: 1rem;">
+          <div class="warning-box">
+            ⚠️ L'ancien administrateur sera désactivé et un nouveau compte sera créé.
+          </div>
+
+          <div class="erreur" *ngIf="erreurAdmin" style="margin-top: 0.75rem;">{{ erreurAdmin }}</div>
+
+          <form (ngSubmit)="remplacerAdmin()" style="margin-top: 1rem;">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" [(ngModel)]="formAdmin.prenom" name="prenomR"
+                       placeholder="Nouveau prénom" required />
+              </div>
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" [(ngModel)]="formAdmin.nom" name="nomR"
+                       placeholder="Nouveau nom" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" [(ngModel)]="formAdmin.email" name="emailR"
+                     placeholder="nouvel.admin@entreprise.sn" required />
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" (click)="basculerRemplacement()"
+                      [disabled]="enregistrementAdmin">Annuler</button>
+              <button type="submit" class="btn-danger" [disabled]="enregistrementAdmin">
+                {{ enregistrementAdmin ? 'Remplacement...' : '🔄 Confirmer le remplacement' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pas d'admin — formulaire création -->
+    <div *ngIf="!chargementAdmin && !adminExistant">
+      <div class="info-box" style="margin-bottom: 1.25rem;">
+        📧 Le login et le mot de passe seront générés automatiquement et envoyés par email.
+      </div>
+
+      <div class="erreur" *ngIf="erreurAdmin">{{ erreurAdmin }}</div>
+
+      <form (ngSubmit)="creerAdmin()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="formAdmin.prenom" name="prenom"
+                   placeholder="Fatou" required />
+          </div>
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="formAdmin.nom" name="nom"
+                   placeholder="Seck" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formAdmin.email" name="email"
+                 placeholder="fatou.seck@entreprise.sn" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="fermerModalAdmin()"
+                  [disabled]="enregistrementAdmin">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="enregistrementAdmin">
+            {{ enregistrementAdmin ? 'Création...' : 'Créer l\'administrateur' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-actions" *ngIf="!chargementAdmin && adminExistant">
+      <button class="btn-secondary" (click)="fermerModalAdmin()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRÉDITER BUDGET -->
+<div class="modal-overlay" *ngIf="modalCrediterOuvert" (click)="fermerModalCrediter()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Créditer — {{ departementPourCrediter?.nom }}</h2>
+
+    <div class="erreur" *ngIf="erreurCredit">{{ erreurCredit }}</div>
+
+    <div class="info-box" style="margin-bottom: 1.25rem;">
+      Budget actuel du département : {{ departementPourCrediter?.budget || 0 }} FCFA<br>
+      Prélevé sur le solde disponible de l'entreprise.
+    </div>
+
+    <div class="form-group">
+      <label>Montant à créditer (FCFA) *</label>
+      <input type="number" [(ngModel)]="montantCredit" name="montantCredit" min="1" step="10000" />
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="fermerModalCrediter()"
+              [disabled]="enregistrementCredit">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="enregistrementCredit || montantCredit < 1"
+              (click)="confirmerCredit()">
+        {{ enregistrementCredit ? 'Crédit en cours...' : 'Confirmer le crédit' }}
+      </button>
+    </div>
+  </div>
+</div>

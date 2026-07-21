@@ -43,13 +43,11 @@ export class LoginComponent {
         this.chargement = false;
         this.cdr.detectChanges();
 
-        // Redirection si changement de mot de passe requis
         if (response.doitChangerMotDePasse) {
           this.router.navigate(['/change-password']);
           return;
         }
 
-        // Redirection selon le rôle
         switch (response.role) {
           case 'SUPER_ADMIN':
             this.router.navigate(['/super-admin/dashboard']);
@@ -62,6 +60,9 @@ export class LoginComponent {
             break;
           case 'ADMIN_ENTREPRISE':
             this.router.navigate(['/entreprise/dashboard']);
+            break;
+          case 'ADMIN_DEPARTEMENT':
+            this.router.navigate(['/departement/dashboard']);
             break;
           default:
             this.router.navigate(['/login']);

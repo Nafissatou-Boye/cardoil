@@ -1,5 +1,6 @@
 package cardoil.backend.controller;
 
+import cardoil.backend.dto.request.CrediterEntrepriseRequest;
 import cardoil.backend.dto.request.EntrepriseRequest;
 import cardoil.backend.dto.response.AdminEntrepriseInfoResponse;
 import cardoil.backend.dto.response.EntrepriseResponse;
@@ -57,4 +58,11 @@ public ResponseEntity<AdminEntrepriseInfoResponse> getAdmin(
         @PathVariable Long id) {
     return ResponseEntity.ok(adminEntrepriseService.getAdmin(authentication.getName(), id));
 }
+
+    @PostMapping("/{id}/crediter")
+    public ResponseEntity<EntrepriseResponse> crediterSolde(Authentication authentication,
+                                                              @PathVariable Long id,
+                                                              @Valid @RequestBody CrediterEntrepriseRequest request) {
+        return ResponseEntity.ok(adminEntrepriseService.crediterSolde(authentication.getName(), id, request.getMontant()));
+    }
 }

@@ -21,4 +21,6 @@ public class EntrepriseResponse {
     private boolean actif;
     private String dateCreation;
     private String compagnieNom;
+
+private java.math.BigDecimal soldeDisponible;
 }

@@ -71,4 +71,7 @@ public class Transaction {
     public void prePersist() {
         this.dateTransaction = LocalDateTime.now();
     }
+
+    @Column(unique = true, length = 20)
+private String reference;
 }

@@ -40,6 +40,10 @@
         <span>{{ e.email }}</span>
       </div>
       <div class="detail-item">
+        <span class="material-icons detail-icon">account_balance_wallet</span>
+        <span>Solde disponible : {{ e.soldeDisponible || 0 }} FCFA</span>
+      </div>
+      <div class="detail-item">
         <span class="material-icons detail-icon">calendar_today</span>
         <span>Depuis le {{ e.dateCreation }}</span>
       </div>
@@ -49,6 +53,10 @@
       <button class="btn-action admin" (click)="ouvrirAdmin(e)">
         <span class="material-icons" style="font-size:0.9rem">manage_accounts</span>
         Admin
+      </button>
+      <button class="btn-action success" (click)="ouvrirCrediter(e)">
+        <span class="material-icons" style="font-size:0.9rem">payments</span>
+        Créditer
       </button>
       <button class="btn-action" (click)="ouvrirEdition(e)">✏️ Modifier</button>
       <button class="btn-action" [class.warning]="e.actif" [class.success]="!e.actif"
@@ -138,10 +146,8 @@
 
     <div *ngIf="chargementAdmin" class="chargement">Chargement...</div>
 
-    <!-- Admin existant -->
     <div *ngIf="!chargementAdmin && adminExistant" class="admin-existant">
 
-      <!-- Identifiants affichés une seule fois après création -->
       <div class="credentials-box" *ngIf="adminExistant.motDePasseTemporaire">
         <h4>🔐 Identifiants générés</h4>
         <div class="credential-item">
@@ -167,49 +173,49 @@
         </span>
       </div>
 
-<div *ngIf="!adminExistant?.motDePasseTemporaire">
-  <div class="info-box" style="margin-top: 1rem;" *ngIf="!modeRemplacement">
-    ℹ️ Cette entreprise a déjà un administrateur.
-    <button class="btn-changer" (click)="basculerRemplacement()">
-      🔄 Changer d'admin
-    </button>
-  </div>
-
-  <!-- Formulaire de remplacement -->
-  <div *ngIf="modeRemplacement" style="margin-top: 1rem;">
-    <div class="warning-box">
-      ⚠️ L'ancien administrateur sera désactivé et un nouveau compte sera créé.
+  <div *ngIf="!adminExistant?.motDePasseTemporaire">
+    <div class="info-box" style="margin-top: 1rem;" *ngIf="!modeRemplacement">
+      ℹ️ Cette entreprise a déjà un administrateur.
+      <button class="btn-changer" (click)="basculerRemplacement()">
+        🔄 Changer d'admin
+      </button>
     </div>
 
-    <div class="erreur" *ngIf="erreurAdmin" style="margin-top: 0.75rem;">{{ erreurAdmin }}</div>
+    <!-- Formulaire de remplacement -->
+    <div *ngIf="modeRemplacement" style="margin-top: 1rem;">
+      <div class="warning-box">
+        ⚠️ L'ancien administrateur sera désactivé et un nouveau compte sera créé.
+      </div>
 
-    <form (ngSubmit)="remplacerAdmin()" style="margin-top: 1rem;">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Prénom *</label>
-          <input type="text" [(ngModel)]="formAdmin.prenom" name="prenomR"
-                 placeholder="Nouveau prénom" required />
+      <div class="erreur" *ngIf="erreurAdmin" style="margin-top: 0.75rem;">{{ erreurAdmin }}</div>
+
+      <form (ngSubmit)="remplacerAdmin()" style="margin-top: 1rem;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" [(ngModel)]="formAdmin.prenom" name="prenomR"
+                   placeholder="Nouveau prénom" required />
+          </div>
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="formAdmin.nom" name="nomR"
+                   placeholder="Nouveau nom" required />
+          </div>
         </div>
         <div class="form-group">
-          <label>Nom *</label>
-          <input type="text" [(ngModel)]="formAdmin.nom" name="nomR"
-                 placeholder="Nouveau nom" required />
+          <label>Email *</label>
+          <input type="email" [(ngModel)]="formAdmin.email" name="emailR"
+                 placeholder="nouvel.admin@entreprise.sn" required />
         </div>
-      </div>
-      <div class="form-group">
-        <label>Email *</label>
-        <input type="email" [(ngModel)]="formAdmin.email" name="emailR"
-               placeholder="nouvel.admin@entreprise.sn" required />
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="basculerRemplacement()"
-                [disabled]="enregistrementAdmin">Annuler</button>
-        <button type="submit" class="btn-danger" [disabled]="enregistrementAdmin">
-          {{ enregistrementAdmin ? 'Remplacement...' : '🔄 Confirmer le remplacement' }}
-        </button>
-      </div>
-    </form>
-  </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="basculerRemplacement()"
+                  [disabled]="enregistrementAdmin">Annuler</button>
+          <button type="submit" class="btn-danger" [disabled]="enregistrementAdmin">
+            {{ enregistrementAdmin ? 'Remplacement...' : '🔄 Confirmer le remplacement' }}
+          </button>
+        </div>
+      </form>
+    </div>
 </div>
     </div>
 
@@ -253,6 +259,33 @@
 
     <div class="modal-actions" *ngIf="!chargementAdmin && adminExistant">
       <button class="btn-secondary" (click)="fermerModalAdmin()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRÉDITER SOLDE -->
+<div class="modal-overlay" *ngIf="modalCrediterOuvert" (click)="fermerModalCrediter()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h2>Créditer — {{ entreprisePourCrediter?.nom }}</h2>
+
+    <div class="erreur" *ngIf="erreurCredit">{{ erreurCredit }}</div>
+
+    <div class="info-box" style="margin-bottom: 1.25rem;">
+      Solde disponible actuel : {{ entreprisePourCrediter?.soldeDisponible || 0 }} FCFA
+    </div>
+
+    <div class="form-group">
+      <label>Montant à créditer (FCFA) *</label>
+      <input type="number" [(ngModel)]="montantCredit" name="montantCredit" min="1" step="10000" />
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="fermerModalCrediter()"
+              [disabled]="enregistrementCredit">Annuler</button>
+      <button type="button" class="btn-primary" [disabled]="enregistrementCredit || montantCredit < 1"
+              (click)="confirmerCredit()">
+        {{ enregistrementCredit ? 'Crédit en cours...' : 'Confirmer le crédit' }}
+      </button>
     </div>
   </div>
 </div>

@@ -2,63 +2,28 @@ package cardoil.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "employes")
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@SuperBuilder
 @NoArgsConstructor
-@AllArgsConstructor
-public class Employe {
+public class Employe extends Utilisateur {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String matricule;
 
-    @Column(nullable = false)
-    private String nom;
-
-    @Column(nullable = false)
-    private String prenom;
-
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false, length = 7)
-    private String login; // 7 chiffres générés
-
-    @Column(nullable = false, length = 4)
-    private String motDePasse; // 4 chiffres générés
-
-    @Builder.Default
-    private BigDecimal solde = BigDecimal.ZERO;
-
-    @Builder.Default
-    private BigDecimal plafondMensuel = BigDecimal.ZERO;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TypeCarteEmploye typeCarte;
-
-    @Builder.Default
-    private boolean actif = true;
-
-    private LocalDateTime dateCreation;
-
+    // Optionnel : présent seulement si l'employé est rattaché à un département précis
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "departement_id", nullable = false)
+    @JoinColumn(name = "departement_id", nullable = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Departement departement;
 
-    @PrePersist
-    public void prePersist() {
-        this.dateCreation = LocalDateTime.now();
-    }
+    // typeCarte, solde et plafondMensuel ont été retirés :
+    // ils vivent maintenant sur l'entité Carte (relation OneToOne employe <-> carte),
+    // conformément au modèle de données du cahier des charges (section 4).
 }

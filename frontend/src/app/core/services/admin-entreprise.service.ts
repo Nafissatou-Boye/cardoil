@@ -14,7 +14,7 @@ export interface Entreprise {
   actif: boolean;
   dateCreation?: string;
   compagnieNom?: string;
-  
+  soldeDisponible?: number;
 }
 
 export interface AdminEntrepriseInfo {
@@ -25,7 +25,6 @@ export interface AdminEntrepriseInfo {
   prenom: string;
   email: string;
   actif: boolean;
-  
 }
 
 export interface AdminEntrepriseRequest {
@@ -36,7 +35,6 @@ export interface AdminEntrepriseRequest {
 
 @Injectable({ providedIn: 'root' })
 export class AdminEntrepriseService {
-
   private apiUrl = `${environment.apiUrl}/admin/entreprises`;
 
   constructor(private http: HttpClient) {}
@@ -62,14 +60,18 @@ export class AdminEntrepriseService {
   }
 
   getAdmin(entrepriseId: number): Observable<AdminEntrepriseInfo | null> {
-  return this.http.get<AdminEntrepriseInfo | null>(`${this.apiUrl}/${entrepriseId}/admin`);
-}
+    return this.http.get<AdminEntrepriseInfo | null>(`${this.apiUrl}/${entrepriseId}/admin`);
+  }
 
-createAdmin(entrepriseId: number, request: AdminEntrepriseRequest): Observable<any> {
-  return this.http.post(`${environment.apiUrl}/admin/personnel/admin-entreprise/${entrepriseId}`, request);
-}
+  createAdmin(entrepriseId: number, request: AdminEntrepriseRequest): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/admin/personnel/admin-entreprise/${entrepriseId}`, request);
+  }
 
-remplacerAdmin(entrepriseId: number, request: AdminEntrepriseRequest): Observable<any> {
-  return this.http.put(`${environment.apiUrl}/admin/personnel/admin-entreprise/${entrepriseId}`, request);
-}
+  remplacerAdmin(entrepriseId: number, request: AdminEntrepriseRequest): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/admin/personnel/admin-entreprise/${entrepriseId}`, request);
+  }
+
+  crediterSolde(entrepriseId: number, montant: number): Observable<Entreprise> {
+    return this.http.post<Entreprise>(`${this.apiUrl}/${entrepriseId}/crediter`, { montant });
+  }
 }

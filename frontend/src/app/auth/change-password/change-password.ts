@@ -64,6 +64,12 @@ export class ChangePasswordComponent {
             case 'GERANT':
               this.router.navigate(['/gerant/dashboard']);
               break;
+            case 'ADMIN_ENTREPRISE':
+              this.router.navigate(['/entreprise/dashboard']);
+              break;
+            case 'ADMIN_DEPARTEMENT':
+              this.router.navigate(['/departement/dashboard']);
+              break;
             default:
               this.router.navigate(['/login']);
           }

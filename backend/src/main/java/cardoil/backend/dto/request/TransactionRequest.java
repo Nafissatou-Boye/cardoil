@@ -24,4 +24,8 @@ public class TransactionRequest {
     @NotNull(message = "Le montant est obligatoire")
     @Positive(message = "Le montant doit être positif")
     private BigDecimal montant;
+
+    // Un seul des deux doit être renseigné, selon qui se présente à la pompe
+    private String numeroCarte;      // Employé
+    private String telephoneClient;  // Client particulier
 }

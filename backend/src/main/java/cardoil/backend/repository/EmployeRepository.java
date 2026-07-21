@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface EmployeRepository extends JpaRepository<Employe, Long> {
     List<Employe> findByDepartementId(Long departementId);
+    List<Employe> findByEntrepriseId(Long entrepriseId);
     boolean existsByMatricule(String matricule);
 }

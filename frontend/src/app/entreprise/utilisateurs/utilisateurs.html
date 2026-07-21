@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div>
+    <h1>Utilisateurs</h1>
+    <p>Employés et Administrateurs de Département de votre entreprise</p>
+  </div>
+</div>
+
+<div class="filtres">
+  <button class="filtre-btn" [class.actif]="filtreRole === 'TOUS'" (click)="changerFiltre('TOUS')">
+    Tous ({{ listeUtilisateurs.length }})
+  </button>
+  <button class="filtre-btn" [class.actif]="filtreRole === 'EMPLOYE'" (click)="changerFiltre('EMPLOYE')">
+    Employés
+  </button>
+  <button class="filtre-btn" [class.actif]="filtreRole === 'ADMIN_DEPARTEMENT'" (click)="changerFiltre('ADMIN_DEPARTEMENT')">
+    Admins Département
+  </button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement...</div>
+
+<div *ngIf="!chargement" class="table-container">
+  <table class="tableau-utilisateurs">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Rôle</th>
+        <th>Département</th>
+        <th>Email</th>
+        <th>Login</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of utilisateursFiltres" (click)="ouvrirDetail(u)" class="ligne-cliquable">
+        <td>
+          <div class="cellule-nom">
+            <div class="avatar-mini">{{ u.prenom.charAt(0) }}{{ u.nom.charAt(0) }}</div>
+            <div>
+              <strong>{{ u.prenom }} {{ u.nom }}</strong>
+              <span class="sous-texte" *ngIf="u.matricule">{{ u.matricule }}</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="role-badge" [class.employe]="u.role === 'EMPLOYE'" [class.admin]="u.role === 'ADMIN_DEPARTEMENT'">
+            {{ labelRole(u.role) }}
+          </span>
+        </td>
+        <td>{{ u.departementNom || '—' }}</td>
+        <td>{{ u.email }}</td>
+        <td class="monospace">{{ u.login }}</td>
+        <td>
+          <span class="statut-badge" [class.actif]="u.actif" [class.inactif]="!u.actif">
+            {{ u.actif ? 'Actif' : 'Inactif' }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="utilisateursFiltres.length === 0" class="empty-state">
+    <div class="empty-icon">👤</div>
+    <p>Aucun utilisateur trouvé</p>
+    <span>Ajoutez des employés ou des administrateurs de département pour les voir apparaître ici</span>
+  </div>
+</div>
