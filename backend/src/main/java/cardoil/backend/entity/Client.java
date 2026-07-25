@@ -17,8 +17,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Client extends Utilisateur {
 
-    @Column(unique = true, nullable = false, length = 20)
-    private String telephone;
+    // telephone retiré : vit maintenant sur Utilisateur (champ partagé avec Employé),
+    // évite la collision de nom parent/enfant qu'on a déjà rencontrée une fois avec "entreprise".
+
+    @Column(unique = true, length = 50)
+    private String nomUtilisateur;
 
     @Column(nullable = false, precision = 15, scale = 2)
     @Builder.Default

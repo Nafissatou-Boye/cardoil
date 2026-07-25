@@ -45,7 +45,7 @@ public class EspaceDepartementServiceImpl implements EspaceDepartementService {
     private static final String CHARS_MDP = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final String CHARS_NUMERO = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom random = new SecureRandom();
-    
+    private static final BigDecimal MONTANT_MINIMUM = BigDecimal.ONE;
 
     private static final Map<StatutCarte, Set<StatutCarte>> TRANSITIONS_AUTORISEES = new EnumMap<>(StatutCarte.class);
     static {
@@ -124,6 +124,7 @@ public class EspaceDepartementServiceImpl implements EspaceDepartementService {
                 .nom(request.getNom())
                 .prenom(request.getPrenom())
                 .email(request.getEmail())
+                .telephone(request.getTelephone())
                 .actif(true)
                 .doitChangerMotDePasse(true)
                 .matricule(matricule)
@@ -346,6 +347,7 @@ public class EspaceDepartementServiceImpl implements EspaceDepartementService {
                 .nom(employe.getNom())
                 .prenom(employe.getPrenom())
                 .email(employe.getEmail())
+                .telephone(employe.getTelephone())
                 .actif(employe.isActif())
                 .dateCreation(employe.getDateCreation())
                 .departementId(employe.getDepartement() != null ? employe.getDepartement().getId() : null)

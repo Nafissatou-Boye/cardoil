@@ -1,32 +1,94 @@
 package cardoil.backend.service;
 
+import cardoil.backend.dto.request.InscriptionClientRequest;
+import cardoil.backend.dto.response.CompagnieOptionResponse;
 import cardoil.backend.entity.Client;
+import cardoil.backend.entity.Compagnie;
+import cardoil.backend.entity.Role;
 import cardoil.backend.enums.StatutCompteClient;
 import cardoil.backend.exception.CardoilException;
 import cardoil.backend.repository.ClientRepository;
+import cardoil.backend.repository.CompagnieRepository;
+import cardoil.backend.repository.UtilisateurRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ClientOtpService {
 
     private final ClientRepository clientRepository;
+    private final UtilisateurRepository utilisateurRepository;
+    private final CompagnieRepository compagnieRepository;
     private final OrangeSmsService orangeSmsService;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final SecureRandom random = new SecureRandom();
 
     private static final int DUREE_VALIDITE_MINUTES = 5;
 
+    // ===== Inscription complète (formulaire rempli avant l'envoi de l'OTP) =====
+
     @Transactional
-    public void demanderOtp(String telephone) {
+    public void inscrire(InscriptionClientRequest request) {
+        if (!request.getMotDePasse().equals(request.getConfirmerMotDePasse())) {
+            throw new IllegalArgumentException("Les mots de passe ne correspondent pas");
+        }
+
+        if (utilisateurRepository.findByTelephone(request.getTelephone()).isPresent()) {
+            throw new IllegalArgumentException("Ce numéro est déjà utilisé");
+        }
+
+        Compagnie compagnie = compagnieRepository.findById(request.getCompagnieId())
+                .orElseThrow(() -> new EntityNotFoundException("Compagnie non trouvée"));
+
+        String[] parties = request.getNomComplet().trim().split("\\s+", 2);
+        String prenom = parties[0];
+        String nom = parties.length > 1 ? parties[1] : "";
+
+        Client client = Client.builder()
+                .login(request.getTelephone())
+                .motDePasse(encoder.encode(request.getMotDePasse()))
+                .role(Role.CLIENT)
+                .nom(nom)
+                .prenom(prenom)
+                .telephone(request.getTelephone())
+                .compagnie(compagnie)
+                .nomUtilisateur(genererNomUtilisateurUnique(prenom, nom))
+                .statutCompte(StatutCompteClient.ACTIF)
+                .actif(false) // devient actif une fois le téléphone vérifié
+                .telephoneVerifie(false)
+                .build();
+
+        String code = genererCode();
+        client.setCodeOtp(code);
+        client.setCodeOtpExpiration(LocalDateTime.now().plusMinutes(DUREE_VALIDITE_MINUTES));
+
+        clientRepository.save(client);
+
+        boolean envoye = orangeSmsService.envoyerCodeOtp(request.getTelephone(), code);
+        if (!envoye) {
+            throw new CardoilException("Impossible d'envoyer le SMS pour le moment");
+        }
+    }
+
+    // ===== Renvoi du code (compte déjà créé, pas encore vérifié) =====
+
+    @Transactional
+    public void renvoyerOtp(String telephone) {
         Client client = clientRepository.findByTelephone(telephone)
-                .orElseGet(() -> creerClientNonVerifie(telephone));
+                .orElseThrow(() -> new EntityNotFoundException("Aucun compte trouvé pour ce numéro"));
+
+        if (client.isTelephoneVerifie()) {
+            throw new IllegalStateException("Ce numéro est déjà vérifié");
+        }
 
         String code = genererCode();
         client.setCodeOtp(code);
@@ -34,10 +96,12 @@ public class ClientOtpService {
         clientRepository.save(client);
 
         boolean envoye = orangeSmsService.envoyerCodeOtp(telephone, code);
-if (!envoye) {
-    throw new CardoilException("Impossible d'envoyer le SMS pour le moment");
-}
+        if (!envoye) {
+            throw new CardoilException("Impossible d'envoyer le SMS pour le moment");
+        }
     }
+
+    // ===== Vérification (finalise l'inscription, le mot de passe est déjà défini) =====
 
     @Transactional
     public void verifierOtp(String telephone, String code) {
@@ -55,23 +119,43 @@ if (!envoye) {
         }
 
         client.setTelephoneVerifie(true);
+        client.setActif(true);
         client.setCodeOtp(null);
         client.setCodeOtpExpiration(null);
         clientRepository.save(client);
     }
 
-    private Client creerClientNonVerifie(String telephone) {
-        // compagnie volontairement absente ici : un client particulier s'inscrit lui-même,
-        // sans compagnie connue au moment de l'inscription (colonne nullable depuis la migration JOINED).
-        Client client = Client.builder()
-                .login(telephone)
-                .motDePasse(encoder.encode(genererCode())) // valeur inutilisable, jamais destinée à servir de mot de passe
-                .role(cardoil.backend.entity.Role.CLIENT)
-                .telephone(telephone)
-                .statutCompte(StatutCompteClient.ACTIF)
-                .actif(true)
-                .build();
-        return client;
+    public List<CompagnieOptionResponse> getCompagniesDisponibles() {
+        return compagnieRepository.findAll().stream()
+                .map(c -> CompagnieOptionResponse.builder()
+                        .id(c.getId())
+                        .nom(c.getNom())
+                        .build())
+                .toList();
+    }
+
+    // ===== HELPERS =====
+
+    private String genererNomUtilisateurUnique(String prenom, String nom) {
+        String base = normaliser(prenom) + normaliser(nom);
+        if (base.isBlank()) {
+            base = "Client";
+        }
+        String candidat = base;
+        int suffixe = 1;
+        while (clientRepository.existsByNomUtilisateurIgnoreCase(candidat)) {
+            suffixe++;
+            candidat = base + suffixe;
+        }
+        return candidat;
+    }
+
+    private String normaliser(String texte) {
+        if (texte == null || texte.isBlank()) return "";
+        String sansAccents = Normalizer.normalize(texte, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        // Garde uniquement lettres et chiffres, préserve la casse d'origine (ex: "Iba Faye" -> "IbaFaye")
+        return sansAccents.replaceAll("[^a-zA-Z0-9]", "");
     }
 
     private String genererCode() {

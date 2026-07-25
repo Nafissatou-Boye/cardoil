@@ -5,8 +5,10 @@ import lombok.Data;
 
 @Data
 public class VerifierOtpRequest {
+
     @NotBlank
     private String telephone;
+
     @NotBlank
     private String code;
 }

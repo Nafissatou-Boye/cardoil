@@ -26,6 +26,8 @@ Optional<Utilisateur> findByDepartementGereIdAndActif(Long departementGereId, bo
 
 
 List<Utilisateur> findByEntrepriseIdAndRoleIn(Long entrepriseId, List<Role> roles);
+// À ajouter dans UtilisateurRepository.java :
 
+Optional<Utilisateur> findByTelephone(String telephone);
 
 }

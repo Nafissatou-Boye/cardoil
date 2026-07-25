@@ -3,27 +3,31 @@ package cardoil.backend.service.impl;
 import cardoil.backend.dto.request.LoginRequest;
 import cardoil.backend.dto.response.LoginResponse;
 import cardoil.backend.entity.Utilisateur;
+import cardoil.backend.repository.ClientRepository;
 import cardoil.backend.repository.UtilisateurRepository;
 import cardoil.backend.security.JwtUtils;
 import cardoil.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final ClientRepository clientRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
     @Override
     public LoginResponse login(LoginRequest request) {
-
-        Utilisateur utilisateur = utilisateurRepository.findByLogin(request.getLogin())
+        Utilisateur utilisateur = resoudreUtilisateur(request.getLogin())
                 .orElseThrow(() -> new BadCredentialsException("Login ou mot de passe incorrect"));
 
         if (utilisateur.isBloque()) {
@@ -39,6 +43,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("Login ou mot de passe incorrect");
         }
 
+        if (!utilisateur.isActif()) {
+            throw new DisabledException("Ce compte n'est pas actif");
+        }
+
         utilisateur.setTentativesEchouees(0);
         utilisateurRepository.save(utilisateur);
 
@@ -47,12 +55,28 @@ public class AuthServiceImpl implements AuthService {
                 utilisateur.getRole().name()
         );
 
-       return LoginResponse.builder()
-        .token(token)
-        .role(utilisateur.getRole().name())
-        .nom(utilisateur.getNom())
-        .prenom(utilisateur.getPrenom())
-        .doitChangerMotDePasse(utilisateur.isDoitChangerMotDePasse())
-        .build();
+        return LoginResponse.builder()
+                .token(token)
+                .role(utilisateur.getRole().name())
+                .nom(utilisateur.getNom())
+                .prenom(utilisateur.getPrenom())
+                .doitChangerMotDePasse(utilisateur.isDoitChangerMotDePasse())
+                .build();
+    }
+
+
+    private Optional<Utilisateur> resoudreUtilisateur(String identifiant) {
+        Optional<Utilisateur> parLogin = utilisateurRepository.findByLogin(identifiant);
+        if (parLogin.isPresent()) {
+            return parLogin;
+        }
+
+        Optional<Utilisateur> parTelephone = utilisateurRepository.findByTelephone(identifiant);
+        if (parTelephone.isPresent()) {
+            return parTelephone;
+        }
+
+        return clientRepository.findByNomUtilisateurIgnoreCase(identifiant)
+                .map(client -> (Utilisateur) client);
     }
 }

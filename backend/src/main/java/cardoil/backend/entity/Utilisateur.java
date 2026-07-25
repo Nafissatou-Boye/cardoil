@@ -77,6 +77,7 @@ public class Utilisateur {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Departement departementGere;
-
+@Column(length = 20)
+private String telephone;
     
 }
