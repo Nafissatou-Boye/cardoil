@@ -5,7 +5,7 @@ import cardoil.backend.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import java.util.Optional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,4 +52,7 @@ long countByStationIdAndDateTransactionBetweenAndStatut(
         Long stationId, LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
 
         boolean existsByReference(String reference);
+
+            Optional<Transaction> findByCodeConfirmation(String codeConfirmation);
+    Optional<Transaction> findByReference(String reference);
 }

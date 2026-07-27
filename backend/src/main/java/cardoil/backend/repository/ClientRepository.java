@@ -16,4 +16,7 @@ boolean existsByNomUtilisateur(String nomUtilisateur);
 
 Optional<Client> findByNomUtilisateurIgnoreCase(String nomUtilisateur);
 boolean existsByNomUtilisateurIgnoreCase(String nomUtilisateur);
+// À ajouter dans ClientRepository.java :
+
+Optional<Client> findByQrCode(String qrCode);
 }

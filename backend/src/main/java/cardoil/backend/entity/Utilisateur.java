@@ -80,4 +80,9 @@ public class Utilisateur {
 @Column(length = 20)
 private String telephone;
     
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "station_id")
+@ToString.Exclude
+@EqualsAndHashCode.Exclude
+private Station station;
 }

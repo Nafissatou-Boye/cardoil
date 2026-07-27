@@ -20,14 +20,9 @@ List<Utilisateur> findByRole(Role role);
 Optional<Utilisateur> findByIdAndRole(Long id, Role role);
 List<Utilisateur> findByCompagnieIdAndRoleIn(Long compagnieId, List<Role> roles);
 Optional<Utilisateur> findByEntrepriseIdAndActif(Long entrepriseId, boolean actif);
-// À ajouter dans UtilisateurRepository.java, à côté de findByEntrepriseIdAndActif :
-
 Optional<Utilisateur> findByDepartementGereIdAndActif(Long departementGereId, boolean actif);
-
-
 List<Utilisateur> findByEntrepriseIdAndRoleIn(Long entrepriseId, List<Role> roles);
-// À ajouter dans UtilisateurRepository.java :
-
 Optional<Utilisateur> findByTelephone(String telephone);
+List<Utilisateur> findByStationIdAndRole(Long stationId, Role role);
 
 }

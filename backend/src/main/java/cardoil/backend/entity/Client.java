@@ -40,4 +40,12 @@ public class Client extends Utilisateur {
     @Builder.Default
     @Column(nullable = false)
     private boolean telephoneVerifie = false;
+
+    // À ajouter dans Client.java, comme nouveaux champs :
+
+@Column(unique = true, length = 20)
+private String qrCode;
+
+private LocalDateTime qrCodeExpiration;
+
 }

@@ -27,12 +27,20 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+ @PostMapping("/register")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
+        Role role;
+        try {
+            role = Role.valueOf(request.getRole());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return ResponseEntity.badRequest().body("Rôle invalide : " + request.getRole());
+        }
+
         cardoil.backend.entity.Utilisateur utilisateur = cardoil.backend.entity.Utilisateur.builder()
             .login(request.getLogin())
             .motDePasse(passwordEncoder.encode(request.getMotDePasse()))
-            .role(cardoil.backend.entity.Role.valueOf(request.getRole()))
+            .role(role)
             .nom(request.getNom())
             .prenom(request.getPrenom())
             .email(request.getEmail())

@@ -161,4 +161,66 @@ public class ClientOtpService {
     private String genererCode() {
         return String.format("%06d", random.nextInt(1_000_000));
     }
+
+    // ===== MOT DE PASSE OUBLIÉ (client déjà inscrit et vérifié) =====
+
+    @Transactional
+    public void demanderResetMotDePasse(String telephone) {
+        Client client = clientRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new EntityNotFoundException("Aucun compte trouvé pour ce numéro"));
+
+        if (!client.isTelephoneVerifie()) {
+            throw new IllegalStateException("Ce compte n'est pas encore vérifié, terminez d'abord l'inscription");
+        }
+
+        String code = genererCode();
+        client.setCodeOtp(code);
+        client.setCodeOtpExpiration(LocalDateTime.now().plusMinutes(DUREE_VALIDITE_MINUTES));
+        clientRepository.save(client);
+
+        boolean envoye = orangeSmsService.envoyerCodeOtp(telephone, code);
+        if (!envoye) {
+            throw new CardoilException("Impossible d'envoyer le SMS pour le moment");
+        }
+    }
+
+    // Vérification "souple" : confirme juste que le code est valide, sans le consommer.
+    // La vraie validation finale a lieu dans reinitialiserMotDePasse (défense en profondeur :
+    // impossible de changer le mot de passe sans repasser par le bon code, même en appelant
+    // directement l'API sans passer par cette étape intermédiaire).
+    public void verifierCodeReset(String telephone, String code) {
+        Client client = clientRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new CardoilException("Aucune demande en cours pour ce numéro"));
+
+        if (client.getCodeOtp() == null || client.getCodeOtpExpiration() == null) {
+            throw new CardoilException("Aucun code en attente pour ce numéro");
+        }
+        if (LocalDateTime.now().isAfter(client.getCodeOtpExpiration())) {
+            throw new CardoilException("Code expiré, redemandez-en un nouveau");
+        }
+        if (!client.getCodeOtp().equals(code)) {
+            throw new CardoilException("Code incorrect");
+        }
+    }
+
+    @Transactional
+    public void reinitialiserMotDePasse(String telephone, String code, String nouveauMotDePasse) {
+        Client client = clientRepository.findByTelephone(telephone)
+                .orElseThrow(() -> new CardoilException("Aucune demande en cours pour ce numéro"));
+
+        if (client.getCodeOtp() == null || client.getCodeOtpExpiration() == null) {
+            throw new CardoilException("Aucun code en attente pour ce numéro");
+        }
+        if (LocalDateTime.now().isAfter(client.getCodeOtpExpiration())) {
+            throw new CardoilException("Code expiré, redemandez-en un nouveau");
+        }
+        if (!client.getCodeOtp().equals(code)) {
+            throw new CardoilException("Code incorrect");
+        }
+
+        client.setMotDePasse(encoder.encode(nouveauMotDePasse));
+        client.setCodeOtp(null);
+        client.setCodeOtpExpiration(null);
+        clientRepository.save(client);
+    }
 }

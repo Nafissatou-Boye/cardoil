@@ -25,7 +25,8 @@ public class TransactionRequest {
     @Positive(message = "Le montant doit être positif")
     private BigDecimal montant;
 
-    // Un seul des deux doit être renseigné, selon qui se présente à la pompe
-    private String numeroCarte;      // Employé
-    private String telephoneClient;  // Client particulier
+    // Un seul des trois doit être renseigné, selon le scan effectué
+    private String numeroCarte;  // Employé
+    private String telephoneClient;  // Client particulier (identification manuelle/téléphone)
+    private String qrCode;  // Client particulier (scan du QR rotatif, prioritaire si présent)
 }

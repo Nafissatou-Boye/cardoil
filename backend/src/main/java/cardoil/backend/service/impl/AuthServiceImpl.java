@@ -61,10 +61,15 @@ public class AuthServiceImpl implements AuthService {
                 .nom(utilisateur.getNom())
                 .prenom(utilisateur.getPrenom())
                 .doitChangerMotDePasse(utilisateur.isDoitChangerMotDePasse())
+                .id(utilisateur.getId())
+                .telephone(utilisateur.getTelephone())
                 .build();
     }
 
-
+    // Résout l'identifiant saisi selon le canal utilisé :
+    // - login système (7 chiffres) : tous les rôles
+    // - téléphone : Employé, Client
+    // - nom d'utilisateur : Client uniquement
     private Optional<Utilisateur> resoudreUtilisateur(String identifiant) {
         Optional<Utilisateur> parLogin = utilisateurRepository.findByLogin(identifiant);
         if (parLogin.isPresent()) {

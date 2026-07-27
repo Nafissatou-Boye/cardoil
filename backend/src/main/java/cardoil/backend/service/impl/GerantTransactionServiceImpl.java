@@ -106,6 +106,15 @@ public class GerantTransactionServiceImpl implements GerantTransactionService {
 
         transaction = transactionRepository.save(transaction);
 
+        // QR code à usage unique : invalidé dès qu'il a servi à une transaction réussie,
+        // même s'il n'a pas encore atteint ses 15 minutes de validité.
+        if (request.getQrCode() != null && !request.getQrCode().isBlank() && clientResolu.client() != null) {
+            Client clientQr = clientResolu.client();
+            clientQr.setQrCode(null);
+            clientQr.setQrCodeExpiration(null);
+            clientRepository.save(clientQr);
+        }
+
         // Attribution automatique des points si promotion POINTS active
         final Transaction savedTransaction = transaction;
         final Station savedStation = station;
@@ -148,16 +157,17 @@ public class GerantTransactionServiceImpl implements GerantTransactionService {
                 .stream().map(this::toProduitResponse).toList();
     }
 
-    // ===== RÉSOLUTION DU CLIENT (via numéro de carte OU téléphone, décodé du QR côté app) =====
+    // ===== RÉSOLUTION DU CLIENT (carte, téléphone, ou QR code rotatif) =====
 
     private ClientResolu resoudreClient(TransactionRequest request) {
         boolean aCarte = request.getNumeroCarte() != null && !request.getNumeroCarte().isBlank();
         boolean aTelephone = request.getTelephoneClient() != null && !request.getTelephoneClient().isBlank();
+        boolean aQrCode = request.getQrCode() != null && !request.getQrCode().isBlank();
 
-        if (aCarte == aTelephone) {
-            // ni l'un ni l'autre, ou les deux à la fois : les deux cas sont invalides
+        int nombreIdentifiants = (aCarte ? 1 : 0) + (aTelephone ? 1 : 0) + (aQrCode ? 1 : 0);
+        if (nombreIdentifiants != 1) {
             throw new IllegalArgumentException(
-                    "Vous devez identifier le client par carte (Employé) OU par téléphone (Client particulier), pas les deux");
+                    "Vous devez identifier le client par carte (Employé), téléphone, ou QR code (Client particulier) — un seul moyen à la fois");
         }
 
         if (aCarte) {
@@ -171,9 +181,15 @@ public class GerantTransactionServiceImpl implements GerantTransactionService {
                     masquerCarte(carte.getNumeroCarte()),
                     "EMPLOYE"
             );
-        } else {
-            Client client = clientRepository.findByTelephone(request.getTelephoneClient().trim())
-                    .orElseThrow(() -> new EntityNotFoundException("Aucun client trouvé pour ce numéro"));
+        }
+
+        if (aQrCode) {
+            Client client = clientRepository.findByQrCode(request.getQrCode().trim())
+                    .orElseThrow(() -> new EntityNotFoundException("QR code invalide ou expiré"));
+
+            if (client.getQrCodeExpiration() == null || LocalDateTime.now().isAfter(client.getQrCodeExpiration())) {
+                throw new IllegalStateException("QR code expiré, demandez au client d'en générer un nouveau");
+            }
 
             if (!client.isTelephoneVerifie()) {
                 throw new IllegalStateException("Le numéro de ce client n'est pas encore vérifié");
@@ -186,6 +202,21 @@ public class GerantTransactionServiceImpl implements GerantTransactionService {
                     "CLIENT_PARTICULIER"
             );
         }
+
+        // aTelephone : identification manuelle, sans QR (secours si le client ne peut pas scanner)
+        Client client = clientRepository.findByTelephone(request.getTelephoneClient().trim())
+                .orElseThrow(() -> new EntityNotFoundException("Aucun client trouvé pour ce numéro"));
+
+        if (!client.isTelephoneVerifie()) {
+            throw new IllegalStateException("Le numéro de ce client n'est pas encore vérifié");
+        }
+
+        return new ClientResolu(
+                null, client, client,
+                client.getPrenom() != null ? client.getPrenom() + " " + client.getNom() : "Client",
+                masquerTelephone(client.getTelephone()),
+                "CLIENT_PARTICULIER"
+        );
     }
 
     // ===== MOUVEMENT DE SOLDE RÉEL =====

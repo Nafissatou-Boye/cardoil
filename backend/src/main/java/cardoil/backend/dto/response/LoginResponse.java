@@ -15,4 +15,8 @@ public class LoginResponse {
     private String nom;
     private String prenom;
     private boolean doitChangerMotDePasse;
+    // À ajouter dans LoginResponse.java, comme nouveaux champs :
+
+private Long id;
+private String telephone;
 }

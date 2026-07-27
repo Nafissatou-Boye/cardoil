@@ -74,4 +74,29 @@ public class Transaction {
 
     @Column(unique = true, length = 20)
 private String reference;
+
+
+@Column(unique = true, length = 20)
+private String codeConfirmation;
+
+private LocalDateTime codeConfirmationExpiration;
+
+// Transaction.java — champ à ajouter
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "service_id")
+@ToString.Exclude
+@EqualsAndHashCode.Exclude
+private ServiceCatalogue service;
+
+private Integer pointsGagnes;
+
+private LocalDateTime dateAnnulation;
+
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "annule_par_id")
+@ToString.Exclude
+@EqualsAndHashCode.Exclude
+private Utilisateur annulePar;
+
+private String motifAnnulation;
 }
