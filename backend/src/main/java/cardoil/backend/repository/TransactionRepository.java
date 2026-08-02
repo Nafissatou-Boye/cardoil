@@ -2,6 +2,7 @@ package cardoil.backend.repository;
 
 import cardoil.backend.entity.StatutTransaction;
 import cardoil.backend.entity.Transaction;
+import cardoil.backend.entity.TypeTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,15 +22,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                            @Param("debut") LocalDateTime debut,
                                            @Param("fin") LocalDateTime fin);
 
-    // Nb transactions par compagnie et période
+   
     long countByStation_Compagnie_IdAndDateTransactionBetween(
             Long compagnieId, LocalDateTime debut, LocalDateTime fin);
 
-    // Nb transactions par statut
+  
     long countByStation_Compagnie_IdAndDateTransactionBetweenAndStatut(
             Long compagnieId, LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
 
-    // CA par station et période
+  
     @Query("SELECT COALESCE(SUM(t.montant), 0) FROM Transaction t " +
            "WHERE t.station.id = :stationId " +
            "AND t.dateTransaction BETWEEN :debut AND :fin " +
@@ -38,15 +39,17 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                          @Param("debut") LocalDateTime debut,
                                          @Param("fin") LocalDateTime fin);
 
-    // Nb transactions par station et période
+
     long countByStationIdAndDateTransactionBetween(
             Long stationId, LocalDateTime debut, LocalDateTime fin);
 
-    // Dernières transactions par compagnie
     List<Transaction> findByStation_Compagnie_IdAndDateTransactionBetweenOrderByDateTransactionDesc(
             Long compagnieId, LocalDateTime debut, LocalDateTime fin);
 
             List<Transaction> findTop10ByStationIdOrderByDateTransactionDesc(Long stationId);
+
+            List<Transaction> findTop10ByStationIdAndOperateurIdAndTypeNotOrderByDateTransactionDesc(
+                    Long stationId, Long operateurId, TypeTransaction type);
 
 long countByStationIdAndDateTransactionBetweenAndStatut(
         Long stationId, LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
@@ -55,4 +58,9 @@ long countByStationIdAndDateTransactionBetweenAndStatut(
 
             Optional<Transaction> findByCodeConfirmation(String codeConfirmation);
     Optional<Transaction> findByReference(String reference);
+
+    List<Transaction> findByClientIdOrderByDateTransactionDesc(Long clientId);
+    @Query("SELECT COALESCE(SUM(t.montant), 0) FROM Transaction t " +
+           "WHERE t.statut = cardoil.backend.entity.StatutTransaction.REUSSIE")
+    BigDecimal sumCaGlobal();
 }

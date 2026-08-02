@@ -1,62 +1,89 @@
-<div class="page-header">
-  <div>
-    <h1>Dashboard</h1>
-    <p *ngIf="info">{{ info.departementNom }} — {{ info.entrepriseNom }}</p>
-  </div>
-</div>
-
-<div *ngIf="chargement" class="chargement">Chargement...</div>
-
-<div *ngIf="!chargement && info">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #a855f7, #6366f1);">
-        <span class="material-icons">people</span>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ info.nombreEmployes }}</span>
-        <span class="stat-label">Employés</span>
-      </div>
+<div class="dashboard-page">
+  <section class="hero-card">
+    <div class="hero-copy">
+      <div class="eyebrow">Tableau de bord</div>
+      <h1>Mon Département</h1>
+      <p *ngIf="info">{{ info.departementNom }} — {{ info.entrepriseNom }}</p>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-        <span class="material-icons">savings</span>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ info.budgetDisponible | number }}</span>
-        <span class="stat-label">FCFA — Budget disponible</span>
-      </div>
+    <div class="hero-badge" *ngIf="info">
+      <span class="hero-badge-label">Cartes</span>
+      <strong>{{ info.cartesActives }}</strong>
+      <span>actives</span>
     </div>
+  </section>
 
-    <div class="stat-card">
-      <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-        <span class="material-icons">account_balance_wallet</span>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ info.soldeTotalCartes | number }}</span>
-        <span class="stat-label">FCFA — Sur les cartes actives</span>
-      </div>
-    </div>
-  </div>
+  <div *ngIf="chargement" class="loading-card">Chargement...</div>
 
-  <div class="section-title">Statut des cartes</div>
-  <div class="stats-grid">
-    <div class="stat-card small">
-      <div class="stat-icon" style="background: #ecfdf5;"><span class="material-icons" style="color: #10b981;">check_circle</span></div>
-      <div class="stat-info"><span class="stat-value">{{ info.cartesActives }}</span><span class="stat-label">Actives</span></div>
-    </div>
-    <div class="stat-card small">
-      <div class="stat-icon" style="background: #eff6ff;"><span class="material-icons" style="color: #3b82f6;">pause_circle</span></div>
-      <div class="stat-info"><span class="stat-value">{{ info.cartesSuspendues }}</span><span class="stat-label">Suspendues</span></div>
-    </div>
-    <div class="stat-card small">
-      <div class="stat-icon" style="background: #fff1f2;"><span class="material-icons" style="color: #ef4444;">block</span></div>
-      <div class="stat-info"><span class="stat-value">{{ info.cartesBloquees }}</span><span class="stat-label">Bloquées</span></div>
-    </div>
-    <div class="stat-card small">
-      <div class="stat-icon" style="background: #f3f4f6;"><span class="material-icons" style="color: #9ca3af;">event_busy</span></div>
-      <div class="stat-info"><span class="stat-value">{{ info.cartesExpirees }}</span><span class="stat-label">Expirées</span></div>
-    </div>
+  <div *ngIf="!chargement && info">
+
+    <!-- STATS PRINCIPALES -->
+    <section class="kpi-grid">
+      <article class="kpi-card kpi-purple">
+        <div class="kpi-top">
+          <div class="kpi-icon"><span class="material-icons">people</span></div>
+          <span class="kpi-chip">Équipe</span>
+        </div>
+        <div class="kpi-value">{{ info.nombreEmployes }}</div>
+        <div class="kpi-label">Employés</div>
+      </article>
+
+      <article class="kpi-card kpi-amber">
+        <div class="kpi-top">
+          <div class="kpi-icon"><span class="material-icons">savings</span></div>
+          <span class="kpi-chip">Budget</span>
+        </div>
+        <div class="kpi-value">{{ info.budgetDisponible | number }}</div>
+        <div class="kpi-label">Budget disponible</div>
+        <div class="kpi-detail">FCFA</div>
+      </article>
+
+      <article class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <div class="kpi-icon"><span class="material-icons">account_balance_wallet</span></div>
+          <span class="kpi-chip">Cartes</span>
+        </div>
+        <div class="kpi-value">{{ info.soldeTotalCartes | number }}</div>
+        <div class="kpi-label">Solde total</div>
+        <div class="kpi-detail">FCFA — cartes actives</div>
+      </article>
+    </section>
+
+    <!-- STATUT DES CARTES -->
+    <div class="section-title">Statut des cartes</div>
+    <section class="status-grid">
+      <article class="status-card status-green">
+        <div class="status-icon"><span class="material-icons">check_circle</span></div>
+        <div class="status-info">
+          <span class="status-value">{{ info.cartesActives }}</span>
+          <span class="status-label">Actives</span>
+        </div>
+      </article>
+
+      <article class="status-card status-blue">
+        <div class="status-icon"><span class="material-icons">pause_circle</span></div>
+        <div class="status-info">
+          <span class="status-value">{{ info.cartesSuspendues }}</span>
+          <span class="status-label">Suspendues</span>
+        </div>
+      </article>
+
+      <article class="status-card status-red">
+        <div class="status-icon"><span class="material-icons">block</span></div>
+        <div class="status-info">
+          <span class="status-value">{{ info.cartesBloquees }}</span>
+          <span class="status-label">Bloquées</span>
+        </div>
+      </article>
+
+      <article class="status-card status-grey">
+        <div class="status-icon"><span class="material-icons">event_busy</span></div>
+        <div class="status-info">
+          <span class="status-value">{{ info.cartesExpirees }}</span>
+          <span class="status-label">Expirées</span>
+        </div>
+      </article>
+    </section>
+
   </div>
 </div>

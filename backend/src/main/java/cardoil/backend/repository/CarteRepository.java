@@ -23,4 +23,11 @@ public interface CarteRepository extends JpaRepository<Carte, Long> {
     // Recherche globale (non scopée à une entreprise) : utilisée par le Gérant en station,
     // où un employé de n'importe quelle entreprise partenaire peut se présenter.
     Optional<Carte> findByNumeroCarteIgnoreCase(String numeroCarte);
+
+    List<Carte> findByDateRenouvellementAndStatut(Integer dateRenouvellement, StatutCarte statut);
+
+    // ✅ Nouveau — résolution du QR d'identité scanné par le pompiste/gérant
+    // (TransactionServiceImpl.payerParQr), et vérification d'unicité lors de
+    // la génération (EmployeCompteServiceImpl.genererQrCode).
+    Optional<Carte> findByCodeQr(String codeQr);
 }

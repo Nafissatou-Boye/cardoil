@@ -64,7 +64,9 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Chaîne existante — strictement inchangée, s'applique à tout ce qui n'est pas /api/v1/recharge/**
+    // Chaîne existante — /uploads/** et /api/public/** ajoutés aux chemins
+    // publics (images uploadées ; statistiques de la page de connexion,
+    // accessibles avant authentification). Tout le reste strictement inchangé.
     @Bean
     @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -74,7 +76,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
            .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/auth/login", "/api/ping", "/error", "/api/client/otp/**").permitAll()
+    .requestMatchers("/api/auth/login", "/api/ping", "/error", "/api/client/otp/**", "/uploads/**", "/api/public/**").permitAll()
     .anyRequest().authenticated()
 )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

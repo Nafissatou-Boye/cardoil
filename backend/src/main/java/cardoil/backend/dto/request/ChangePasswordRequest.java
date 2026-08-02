@@ -11,6 +11,6 @@ public class ChangePasswordRequest {
     private String ancienMotDePasse;
 
     @NotBlank(message = "Le nouveau mot de passe est obligatoire")
-    @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
+    @Size(min = 4, message = "Le mot de passe doit contenir au moins 4 caractères")
     private String nouveauMotDePasse;
 }

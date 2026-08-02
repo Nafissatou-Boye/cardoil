@@ -8,15 +8,14 @@ import java.util.Optional;
 public interface ClientRepository extends JpaRepository<Client, Long> {
     Optional<Client> findByTelephone(String telephone);
     boolean existsByTelephone(String telephone);
-    // À ajouter dans ClientRepository.java :
 
-Optional<Client> findByNomUtilisateur(String nomUtilisateur);
-boolean existsByNomUtilisateur(String nomUtilisateur);
-// À ajouter dans ClientRepository.java (remplace les 2 lignes ajoutées précédemment si déjà présentes) :
+    // ✅ Versions insensibles à la casse — remplacent findByNomUtilisateur/
+    // existsByNomUtilisateur (instruction de remplacement déjà donnée,
+    // appliquée ici plutôt que de laisser les deux versions coexister).
+    Optional<Client> findByNomUtilisateurIgnoreCase(String nomUtilisateur);
+    boolean existsByNomUtilisateurIgnoreCase(String nomUtilisateur);
 
-Optional<Client> findByNomUtilisateurIgnoreCase(String nomUtilisateur);
-boolean existsByNomUtilisateurIgnoreCase(String nomUtilisateur);
-// À ajouter dans ClientRepository.java :
-
-Optional<Client> findByQrCode(String qrCode);
+    // ✅ Nouveau — résolution du QR d'identité scanné par le pompiste/gérant
+    // (TransactionServiceImpl.payerParQr).
+    Optional<Client> findByQrCode(String qrCode);
 }

@@ -24,5 +24,7 @@ Optional<Utilisateur> findByDepartementGereIdAndActif(Long departementGereId, bo
 List<Utilisateur> findByEntrepriseIdAndRoleIn(Long entrepriseId, List<Role> roles);
 Optional<Utilisateur> findByTelephone(String telephone);
 List<Utilisateur> findByStationIdAndRole(Long stationId, Role role);
+// UtilisateurRepository.java — à ajouter si absente
+boolean existsByTelephone(String telephone);
 
 }

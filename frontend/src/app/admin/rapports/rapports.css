@@ -135,9 +135,20 @@
 }
 
 /* ===== TABLE ===== */
+
+/* ✅ Nouveau — white-space: nowrap sur th/td (ci-dessous) empêche le texte
+   de retourner à la ligne : sans ce conteneur scrollable, une table large
+   pousserait toute la page en défilement horizontal sur mobile, pas
+   seulement la table elle-même. Même pattern que services.component.css. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 560px;
 }
 
 th {
@@ -179,6 +190,7 @@ tbody tr:hover { background: #f9fafb; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 140px;
 }
 
 .progress-fill {
@@ -241,5 +253,33 @@ tbody tr:hover { background: #f9fafb; }
 
 @media (max-width: 768px) {
   .kpis { grid-template-columns: 1fr; }
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* ✅ Nouveau — le sélecteur de période prend toute la largeur, boutons
+     répartis également, plutôt que de rester à sa largeur naturelle
+     collée à gauche sous le titre. */
+  .period-selector {
+    width: 100%;
+  }
+
+  .period-btn {
+    flex: 1;
+  }
+
+  .section-card {
+    padding: 1.1rem;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .kpi-card { padding: 1.1rem; }
+  .kpi-valeur { font-size: 1.2rem; }
+  .section-card { padding: 0.9rem; }
+  th, td { padding: 0.7rem 0.8rem; font-size: 0.82rem; }
 }

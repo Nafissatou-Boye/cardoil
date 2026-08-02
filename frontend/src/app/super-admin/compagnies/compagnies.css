@@ -194,6 +194,7 @@ tbody tr:hover {
   align-items: center;
   justify-content: center;
   z-index: 100;
+  padding: 1rem;
 }
 
 .modal {
@@ -298,6 +299,16 @@ tbody tr:hover {
 }
 
 /* ===== RESPONSIVE ===== */
+
+@media (max-width: 1024px) {
+  .modal { padding: 1.75rem; }
+}
+
+@media (max-width: 768px) {
+  th, td { padding: 0.75rem 1rem; font-size: 0.85rem; }
+  .modal { padding: 1.5rem; }
+}
+
 @media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -308,4 +319,18 @@ tbody tr:hover {
     align-items: flex-start;
     gap: 1rem;
   }
+}
+
+@media (max-width: 480px) {
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    text-align: center;
+  }
+
+  .modal { padding: 1.25rem; }
+  .modal h2 { font-size: 1.1rem; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary { width: 100%; }
 }

@@ -69,6 +69,7 @@
     <div class="section-header">
       <h3>Performance par station</h3>
     </div>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -97,6 +98,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <!-- DERNIERES TRANSACTIONS -->
@@ -111,7 +113,8 @@
       <p>Aucune transaction sur cette période</p>
     </div>
 
-    <table *ngIf="rapport.dernieresTransactions.length > 0">
+    <div class="table-scroll" *ngIf="rapport.dernieresTransactions.length > 0">
+    <table>
       <thead>
         <tr>
           <th>Date</th>
@@ -137,6 +140,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </div>
 
 </div>

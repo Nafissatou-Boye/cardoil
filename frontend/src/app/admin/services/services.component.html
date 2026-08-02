@@ -1,0 +1,195 @@
+<div class="page-header">
+  <div>
+    <h1>Services</h1>
+    <p>Gérez le catalogue de services de votre compagnie</p>
+  </div>
+  <button class="btn-primary" (click)="ouvrirCreation()">
+    <span class="material-icons">add</span>
+    Nouveau service
+  </button>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement des services...</div>
+
+<div *ngIf="erreur" class="erreur-globale">
+  <span class="material-icons">error_outline</span>
+  {{ erreur }}
+</div>
+
+<div *ngIf="!chargement && services.length === 0 && !erreur" class="vide">
+  <span class="material-icons">inventory_2</span>
+  <p>Aucun service pour l'instant</p>
+  <button class="btn-primary" (click)="ouvrirCreation()">Créer votre premier service</button>
+</div>
+
+<div *ngIf="!chargement && services.length > 0" class="table-card">
+  <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Catégorie</th>
+        <th>Prix</th>
+        <th>Statut</th>
+        <th>Stations</th>
+        <th>Obligatoire</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let service of services">
+        <td>
+          <div class="cell-service">
+            <span class="service-icone" [style.background]="service.couleurHex || '#3b82f6'">
+              <img *ngIf="iconeUrl(service.icone)" [src]="iconeUrl(service.icone)" alt="" />
+              <ng-container *ngIf="!service.icone">{{ service.nom.charAt(0) }}</ng-container>
+            </span>
+            <div>
+              <strong>{{ service.nom }}</strong>
+              <span class="service-code">{{ service.code }}</span>
+            </div>
+          </div>
+        </td>
+        <td>{{ categorieLabel(service.categorie) }}</td>
+        <td>{{ service.prix != null ? (service.prix | number) + ' FCFA' : '—' }}</td>
+        <td><span [class]="statutClass(service.statut)">{{ statutLabel(service.statut) }}</span></td>
+        <td>
+          <span *ngIf="service.stationIds.length === 0" class="stations-info">Toutes</span>
+          <span *ngIf="service.stationIds.length > 0" class="stations-info">{{ service.stationIds.length }} station(s)</span>
+        </td>
+        <td>
+          <span class="material-icons" [class.oui]="service.obligatoire" [class.non]="!service.obligatoire">
+            {{ service.obligatoire ? 'check_circle' : 'remove_circle_outline' }}
+          </span>
+        </td>
+        <td class="cell-actions">
+          <button class="btn-icon" title="Modifier" (click)="ouvrirEdition(service)">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="btn-icon" title="Affecter aux stations" (click)="ouvrirStations(service)">
+            <span class="material-icons">ev_station</span>
+          </button>
+          <select class="statut-select" [ngModel]="service.statut" (ngModelChange)="changerStatut(service, $event)">
+            <option value="BROUILLON">Brouillon</option>
+            <option value="ACTIF">Actif</option>
+            <option value="INACTIF">Inactif</option>
+            <option value="ARCHIVE">Archivé</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ═══ Overlay création / édition ═══ -->
+<div class="overlay" *ngIf="formulaireOuvert" (click)="fermerFormulaire()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ serviceEnEdition ? 'Modifier le service' : 'Nouveau service' }}</h2>
+      <button class="btn-icon" (click)="fermerFormulaire()"><span class="material-icons">close</span></button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="enregistrer()" class="modal-body">
+      <div *ngIf="erreurForm" class="erreur-globale">{{ erreurForm }}</div>
+
+      <div class="form-row">
+        <label>Code
+          <input type="text" formControlName="code" placeholder="Ex: LAVAGE_EXPRESS" maxlength="20" />
+        </label>
+        <label>Catégorie
+          <select formControlName="categorie">
+            <option value="" disabled>Choisir...</option>
+            <option *ngFor="let c of categories" [value]="c.valeur">{{ c.label }}</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="form-full">Nom
+        <input type="text" formControlName="nom" placeholder="Ex: Lavage express" />
+      </label>
+
+      <label class="form-full">Description
+        <textarea formControlName="description" rows="2" placeholder="Description optionnelle"></textarea>
+      </label>
+
+      <div class="form-row">
+        <label>Prix (FCFA)
+          <input type="number" formControlName="prix" min="0" placeholder="Optionnel" />
+        </label>
+        <label>Ordre d'affichage
+          <input type="number" formControlName="ordreTri" />
+        </label>
+      </div>
+
+      <div class="form-row">
+        <div class="form-full icone-upload">
+          <span class="icone-upload-label">Icône</span>
+          <div class="icone-upload-row">
+            <div class="icone-preview" [style.background]="form.value.couleurHex || '#3b82f6'">
+              <img *ngIf="iconeUrl(form.value.icone)" [src]="iconeUrl(form.value.icone)" alt="" />
+              <span class="material-icons" *ngIf="!form.value.icone">image</span>
+            </div>
+            <div class="icone-upload-actions">
+              <label class="btn-secondary icone-upload-btn">
+                {{ iconeUploadEnCours ? 'Envoi...' : 'Choisir une image' }}
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                       (change)="onFichierIconeSelectionne($event)" [disabled]="iconeUploadEnCours" hidden />
+              </label>
+              <span class="icone-upload-hint">PNG, JPEG, WEBP ou SVG · 2 Mo max</span>
+            </div>
+          </div>
+        </div>
+        <label>Couleur
+          <input type="color" formControlName="couleurHex" />
+        </label>
+      </div>
+
+      <label class="form-checkbox">
+        <input type="checkbox" formControlName="obligatoire" />
+        Service obligatoire (ne peut pas être désactivé au niveau station)
+      </label>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="fermerFormulaire()">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="enregistrement">
+          {{ enregistrement ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ Overlay affectation stations ═══ -->
+<div class="overlay" *ngIf="stationsOuvert" (click)="fermerStations()">
+  <div class="modal modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Affecter aux stations</h2>
+      <button class="btn-icon" (click)="fermerStations()"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-hint">
+        Laissez tout décoché pour rendre "{{ serviceStations?.nom }}" disponible dans toutes vos stations.
+      </p>
+      <div *ngIf="stationsChargement" class="chargement">Chargement des stations...</div>
+      <div *ngIf="!stationsChargement && stations.length === 0" class="modal-hint">
+        Aucune station trouvée.
+      </div>
+      <div *ngIf="!stationsChargement && stations.length > 0" class="station-liste">
+        <label class="station-item" *ngFor="let station of stations">
+          <input
+            type="checkbox"
+            [checked]="station.id != null && stationIdsSelectionnes.has(station.id)"
+            (change)="toggleStation(station.id)"
+          />
+          <span>{{ station.nom }}</span>
+          <span class="station-adresse">{{ station.adresse }}</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="fermerStations()">Annuler</button>
+        <button type="button" class="btn-primary" (click)="enregistrerStations()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>

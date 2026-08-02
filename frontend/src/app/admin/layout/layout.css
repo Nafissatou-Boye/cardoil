@@ -256,11 +256,102 @@
   flex: 1;
 }
 
+/* ===== MENU MOBILE — masqué par défaut sur desktop ===== */
+.btn-menu-mobile {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #e8ecf0;
+  background: #f5f6fa;
+  color: #6b7280;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.btn-fermer-mobile {
+  display: none;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0.25rem;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
 /* ===== RESPONSIVE ===== */
+
+/* Tablette : sidebar plus étroite, contenu resserré, mais navigation
+   toujours visible en permanence — pas encore de tiroir. */
+@media (max-width: 1024px) {
+  .sidebar { width: 220px; }
+  .main { margin-left: 220px; }
+  .content { padding: 1.5rem; }
+  .search-bar { width: 200px; }
+}
+
+/* Mobile : la sidebar devient un tiroir hors-écran par défaut, ouvert via
+   le bouton hamburger, fermé au clic sur le fond d'écran ou à chaque
+   navigation (voir layout.ts). Remplace l'ancien "display: none" qui
+   coupait tout accès à la navigation sans rien pour la remplacer. */
 @media (max-width: 768px) {
-  .sidebar { display: none; }
+  .sidebar {
+    display: flex;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 60;
+    box-shadow: none;
+  }
+
+  .sidebar.sidebar-ouvert {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  }
+
+  .btn-fermer-mobile {
+    display: block;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 46, 0.45);
+    z-index: 55;
+  }
+
   .main { margin-left: 0; }
+
+  .btn-menu-mobile { display: flex; }
+
   .search-bar { display: none; }
+
+  .topbar { padding: 0.875rem 1rem; }
+
+  .breadcrumb span:first-child,
+  .breadcrumb span:nth-child(2) {
+    display: none; /* Garde seulement le titre de la page, "CardOil ›" masqué */
+  }
+
+  .content { padding: 1.25rem 1rem; }
+
+  .topbar-right { gap: 0.5rem; }
+}
+
+/* Petit mobile : encore plus resserré */
+@media (max-width: 420px) {
+  .content { padding: 1rem 0.75rem; }
+  .topbar { padding: 0.75rem 0.875rem; }
+  .btn-notif { width: 34px; height: 34px; }
+  .topbar-avatar { width: 32px; height: 32px; font-size: 0.7rem; }
 }
 
 .nav-icon.material-icons {

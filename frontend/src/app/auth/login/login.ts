@@ -1,9 +1,10 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { PublicStatsService, PublicStats } from '../../core/services/public-stats.service';
 
 @Component({
   selector: 'app-login',
@@ -12,18 +13,50 @@ import { environment } from '../../../environments/environment';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
   login = '';
   motDePasse = '';
   erreur = '';
   chargement = false;
 
+  // ✅ Nouveau — statistiques publiques affichées en jauges dans le hero.
+  stats: PublicStats | null = null;
+  statsChargement = true;
+
   constructor(
     private http: HttpClient,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private publicStatsService: PublicStatsService
   ) {}
+
+  ngOnInit(): void {
+    this.chargerStats();
+  }
+
+  private chargerStats(): void {
+    this.publicStatsService.getStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+        this.statsChargement = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Non bloquant — la page de connexion reste utilisable même si les
+        // statistiques échouent à charger, elles restent juste en squelette.
+        this.statsChargement = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  formatVolume(v: number): string {
+    if (v >= 1_000_000_000) return (v / 1_000_000_000).toFixed(1).replace('.', ',') + ' Md';
+    if (v >= 1_000_000) return (v / 1_000_000).toFixed(1).replace('.', ',') + ' M';
+    if (v >= 1_000) return Math.round(v / 1_000) + ' K';
+    return v.toString();
+  }
 
   onSubmit(): void {
     this.erreur = '';

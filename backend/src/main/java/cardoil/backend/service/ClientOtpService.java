@@ -38,6 +38,10 @@ public class ClientOtpService {
 
     @Transactional
     public void inscrire(InscriptionClientRequest request) {
+
+        if (utilisateurRepository.existsByTelephone(request.getTelephone())) {
+    throw new CardoilException("Ce numéro de téléphone est déjà utilisé");
+}
         if (!request.getMotDePasse().equals(request.getConfirmerMotDePasse())) {
             throw new IllegalArgumentException("Les mots de passe ne correspondent pas");
         }

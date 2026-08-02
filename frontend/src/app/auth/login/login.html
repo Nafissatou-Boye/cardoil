@@ -1,90 +1,125 @@
-<div class="login-layout">
+<div class="login-page">
 
-  <!-- GAUCHE -->
-  <div class="left-panel">
-    <div class="left-content">
-      <div class="brand">
-        <div class="brand-icon">⛽</div>
-        <span>CardOil</span>
-      </div>
-      <h1>Fuel the future of petroleum management.</h1>
-      <p>Enterprise-grade fuel payment, loyalty programs, and fleet management for the world's leading petroleum companies.</p>
+  <!-- ═══ HERO ═══ -->
+  <section class="hero-panel">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-ring" aria-hidden="true"></div>
 
-      <div class="features">
-        <div class="feature-item">
-          <span class="feature-icon">🛡️</span>
-          <span>Bank-grade security with multi-factor authentication</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">⚡</span>
-          <span>Real-time transaction processing at scale</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">📊</span>
-          <span>Advanced analytics and business intelligence</span>
-        </div>
+    <div class="hero-content">
+      <div class="brand-row">
+        <div class="brand-mark">⛽</div>
+        <span class="brand-name">CardOil</span>
       </div>
 
-      <div class="stats">
-        <div class="stat">
-          <strong>250+</strong>
-          <span>Companies</span>
+      <h1>Gérez vos cartes carburant avec plus de contrôle.</h1>
+      <p class="hero-text">
+        Une plateforme pensée pour les réseaux pétroliers, la gestion de flotte
+        et le suivi des transactions en temps réel.
+      </p>
+
+      <div class="highlights">
+        <div class="highlight">
+          <span>🔒</span>
+          <p>Accès sécurisé et authentification renforcée</p>
         </div>
-        <div class="stat">
-          <strong>4,800+</strong>
-          <span>Stations</span>
+        <div class="highlight">
+          <span>⚡</span>
+          <p>Validation rapide des opérations et des paiements</p>
         </div>
-        <div class="stat">
-          <strong>$2.4B</strong>
-          <span>Processed</span>
+        <div class="highlight">
+          <span>📈</span>
+          <p>Suivi des volumes, stations et performances en un coup d'œil</p>
+        </div>
+      </div>
+
+      <!-- ═══ Jauges — dynamiques (statsChargement / stats) ═══ -->
+      <div class="metrics">
+        <div class="metric" style="--pct: 78">
+          <div class="metric-gauge-wrap">
+            <svg viewBox="0 0 100 100" class="metric-gauge" aria-hidden="true">
+              <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
+              <circle class="gauge-fill" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <div class="metric-value">
+              <strong *ngIf="!statsChargement && stats">{{ stats.totalCompagnies }}<span class="metric-plus">+</span></strong>
+              <strong *ngIf="statsChargement" class="metric-skeleton">···</strong>
+            </div>
+          </div>
+          <span class="metric-label">entreprises</span>
+        </div>
+
+        <div class="metric" style="--pct: 88">
+          <div class="metric-gauge-wrap">
+            <svg viewBox="0 0 100 100" class="metric-gauge" aria-hidden="true">
+              <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
+              <circle class="gauge-fill" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <div class="metric-value">
+              <strong *ngIf="!statsChargement && stats">{{ stats.totalStations }}<span class="metric-plus">+</span></strong>
+              <strong *ngIf="statsChargement" class="metric-skeleton">···</strong>
+            </div>
+          </div>
+          <span class="metric-label">stations</span>
+        </div>
+
+        <div class="metric" style="--pct: 65">
+          <div class="metric-gauge-wrap">
+            <svg viewBox="0 0 100 100" class="metric-gauge" aria-hidden="true">
+              <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
+              <circle class="gauge-fill" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <div class="metric-value">
+              <strong *ngIf="!statsChargement && stats">{{ formatVolume(stats.volumeTraite) }}</strong>
+              <strong *ngIf="statsChargement" class="metric-skeleton">···</strong>
+            </div>
+          </div>
+          <span class="metric-label">FCFA traités</span>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- DROITE -->
-  <div class="right-panel">
-    <div class="form-container">
-      <h2>Welcome back</h2>
-      <p class="form-subtitle">Sign in to your CardOil dashboard</p>
+  <!-- ═══ LOGIN ═══ -->
+  <section class="login-panel">
+    <div class="login-card">
+      <p class="eyebrow">Connexion sécurisée</p>
+      <h2>Bienvenue sur votre espace</h2>
+      <p class="subtitle">Accédez à votre tableau de bord CardOil.</p>
 
-      <form (ngSubmit)="onSubmit()">
-
-        <div class="form-group">
+      <form (ngSubmit)="onSubmit()" class="login-form">
+        <div class="field">
           <label>Identifiant</label>
           <input
             type="text"
             [(ngModel)]="login"
             name="login"
-            placeholder="7 chiffres"
+            placeholder="Ex. 1234567"
             maxlength="7"
             required
           />
         </div>
-
-        <div class="form-group">
-          <div class="label-row">
-            <label>Mot de passe</label>
-          </div>
+        <div class="field">
+          <label>Mot de passe</label>
           <input
             type="password"
             [(ngModel)]="motDePasse"
             name="motDePasse"
-            placeholder="••••••••"
+            placeholder="Votre mot de passe"
             required
           />
         </div>
-
-        <div class="erreur" *ngIf="erreur">{{ erreur }}</div>
-
-        <button type="submit" [disabled]="chargement" class="btn-submit">
-          {{ chargement ? 'Connexion...' : 'Sign in to Dashboard →' }}
+        <div class="error" *ngIf="erreur">{{ erreur }}</div>
+        <button type="submit" [disabled]="chargement" class="btn-primary">
+          {{ chargement ? 'Connexion...' : 'Se connecter' }}
+          <span>→</span>
         </button>
-
       </form>
 
-      <p class="footer-text">Protected by 256-bit SSL encryption</p>
+      <div class="login-footer">
+        <span>Connexion protégée</span>
+        <a href="#">Mot de passe oublié ?</a>
+      </div>
     </div>
-  </div>
+  </section>
 
 </div>

@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { ServicesComponent } from './services/services.component';
+import { TransactionsComponent } from './transactions/transactions.component';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -61,6 +63,11 @@ export const ADMIN_ROUTES: Routes = [
     import('./personnel/personnel').then(m => m.PersonnelComponent),
   data: { title: 'Mon Personnel' }
 },
+
+{ path: 'services', component: ServicesComponent, data: { title: 'Services' } },
+
+{ path: 'transactions', component: TransactionsComponent, data: { title: 'Transactions' } },
+
 
 {
   path: 'entreprises',

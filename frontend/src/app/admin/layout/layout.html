@@ -1,7 +1,10 @@
 <div class="layout">
 
+  <!-- Fond d'écran mobile, visible seulement quand le menu est ouvert -->
+  <div class="sidebar-backdrop" *ngIf="menuMobileOuvert" (click)="fermerMenuMobile()"></div>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.sidebar-ouvert]="menuMobileOuvert">
     <div class="sidebar-logo">
       <div class="logo-icon">
         <span class="material-icons">local_gas_station</span>
@@ -10,6 +13,9 @@
         <h2>CardOil</h2>
         <span>Admin Compagnie</span>
       </div>
+      <button class="btn-fermer-mobile" (click)="fermerMenuMobile()">
+        <span class="material-icons">close</span>
+      </button>
     </div>
 
     <nav class="nav-section">
@@ -33,9 +39,17 @@
         <span class="material-icons nav-icon">inventory_2</span>
         <span>Produits & Prix</span>
       </a>
+      <a routerLink="/admin/services" class="nav-item" routerLinkActive="active">
+        <span class="material-icons nav-icon">room_service</span>
+        <span>Services</span>
+      </a>
       <a routerLink="/admin/rapports" class="nav-item" routerLinkActive="active">
         <span class="material-icons nav-icon">bar_chart</span>
         <span>Rapports</span>
+      </a>
+      <a routerLink="/admin/transactions" class="nav-item" routerLinkActive="active">
+        <span class="material-icons nav-icon">receipt_long</span>
+        <span>Transactions</span>
       </a>
       <a routerLink="/admin/promotions" class="nav-item" routerLinkActive="active">
         <span class="material-icons nav-icon">campaign</span>
@@ -71,6 +85,9 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
+      <button class="btn-menu-mobile" (click)="ouvrirMenuMobile()">
+        <span class="material-icons">menu</span>
+      </button>
       <div class="breadcrumb">
         <span>CardOil</span>
         <span>›</span>

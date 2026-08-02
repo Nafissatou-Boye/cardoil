@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -153,12 +154,18 @@ public class AdminPromotionServiceImpl implements AdminPromotionService {
 
     // ===== HELPERS =====
 
+    // ✅ Fix : List.of() (cas vide) et .toList() (Stream, Java 16+) sont
+    // TOUS LES DEUX immuables — assignés à stationsConcernees, une
+    // collection @ManyToMany gérée par Hibernate, qui a besoin de pouvoir
+    // la modifier en interne pour synchroniser la table de jointure. Même
+    // piège, même correctif que ServiceCatalogue.stationsDisponibles
+    // (AdminCompagnieServiceCatalogueServiceImpl.assignerStations).
     private List<Station> resolveStations(List<Long> stationIds, Long compagnieId) {
-        if (stationIds == null || stationIds.isEmpty()) return List.of();
-        return stationIds.stream()
+        if (stationIds == null || stationIds.isEmpty()) return new ArrayList<>();
+        return new ArrayList<>(stationIds.stream()
                 .map(sid -> stationRepository.findByIdAndCompagnieId(sid, compagnieId)
                         .orElseThrow(() -> new EntityNotFoundException("Station non trouvée : " + sid)))
-                .toList();
+                .toList());
     }
 
     private void validerPeriode(LocalDateTime debut, LocalDateTime fin) {

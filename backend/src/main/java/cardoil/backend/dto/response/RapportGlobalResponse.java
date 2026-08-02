@@ -14,12 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 public class RapportGlobalResponse {
 
-    private BigDecimal caTotal;
+  private BigDecimal caTotal;
     private long totalTransactions;
     private long transactionsReussies;
     private long transactionsEchec;
-    private List<StationRapport> parStation;
-    private List<TransactionRapport> dernieresTransactions;
+    private List<RapportStationResponse> parStation;
+    private List<RapportTransactionResponse> dernieresTransactions;
 
     @Data
     @Builder

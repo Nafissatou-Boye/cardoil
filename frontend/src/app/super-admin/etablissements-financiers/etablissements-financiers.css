@@ -46,7 +46,8 @@
   background: #fff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 table { width: 100%; border-collapse: collapse; }
@@ -59,12 +60,14 @@ th {
   padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
+  white-space: nowrap;
 }
 
 td {
   padding: 12px 16px;
   border-bottom: 1px solid #f3f4f6;
   font-size: 14px;
+  white-space: nowrap;
 }
 td.centre { text-align: center; }
 
@@ -102,6 +105,7 @@ td.centre { text-align: center; }
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 16px;
 }
 
 .modal {
@@ -110,6 +114,8 @@ td.centre { text-align: center; }
   padding: 24px;
   width: 420px;
   max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal h2 { margin: 0 0 16px; font-size: 18px; }
@@ -147,7 +153,14 @@ td.centre { text-align: center; }
   padding: 12px;
   margin: 16px 0 8px;
 }
-.cle-affichage code { flex: 1; word-break: break-all; font-size: 13px; text-align: left; }
+.cle-affichage code {
+  flex: 1;
+  word-break: break-all;
+  font-size: 13px;
+  text-align: left;
+  user-select: all;
+  cursor: text;
+}
 
 .confirmation-copie { color: #16a34a; font-size: 13px; margin: 0; }
 
@@ -224,11 +237,43 @@ td.centre { text-align: center; }
   gap: 10px;
 }
 
-.cle-affichage code {
-  flex: 1;
-  word-break: break-all;
-  font-size: 13px;
-  text-align: left;
-  user-select: all;  /* 🆕 un seul clic sélectionne tout le texte */
-  cursor: text;       /* 🆕 signale visuellement que c'est sélectionnable */
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1024px) {
+  .modal-liaisons { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .page { padding: 16px; }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .btn-primary { justify-content: center; }
+
+  th, td { padding: 10px 12px; font-size: 13px; }
+
+  .modal { padding: 20px; }
+
+  .table-liaisons th, .table-liaisons td { font-size: 12px; padding: 8px; }
+}
+
+@media (max-width: 600px) {
+  .form-liaison-plafonds {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-liaisons-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal { padding: 16px; }
+  .icone-alerte { font-size: 32px; }
+  .cle-affichage { flex-direction: column; align-items: stretch; }
 }

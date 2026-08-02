@@ -16,6 +16,10 @@ export class LayoutComponent implements OnInit {
   prenom = localStorage.getItem('prenom');
   pageTitle = 'Dashboard';
 
+  // ✅ Nouveau — état du menu mobile (tiroir hors-écran par défaut,
+  // affiché en overlay quand ouvert). Voir layout.css / layout.html.
+  menuMobileOuvert = false;
+
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -27,8 +31,20 @@ export class LayoutComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.updateTitle();
+      // Ferme le menu mobile à chaque navigation — réutilise cet
+      // abonnement existant plutôt que d'ajouter un handler (click) sur
+      // chaque nav-item individuellement.
+      this.menuMobileOuvert = false;
       this.cdr.detectChanges();
     });
+  }
+
+  ouvrirMenuMobile(): void {
+    this.menuMobileOuvert = true;
+  }
+
+  fermerMenuMobile(): void {
+    this.menuMobileOuvert = false;
   }
 
   private updateTitle(): void {

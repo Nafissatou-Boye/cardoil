@@ -1,7 +1,9 @@
 package cardoil.backend.controller;
 
 import cardoil.backend.dto.request.StationAdminRequest;
+import cardoil.backend.dto.response.RapportGlobalResponse;
 import cardoil.backend.dto.response.StationResponse;
+import cardoil.backend.service.AdminCompagnieRapportService;
 import cardoil.backend.service.AdminStationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +44,14 @@ public class AdminStationController {
     public ResponseEntity<Void> delete(Authentication authentication, @PathVariable Long id) {
         adminStationService.delete(authentication.getName(), id);
         return ResponseEntity.noContent().build();
+    }
+
+       private final AdminCompagnieRapportService adminCompagnieRapportService;
+ 
+    @GetMapping("/api/admin/rapports")
+    public ResponseEntity<RapportGlobalResponse> getRapport(
+            Authentication authentication,
+            @RequestParam String periode) {
+        return ResponseEntity.ok(adminCompagnieRapportService.getRapport(authentication.getName(), periode));
     }
 }

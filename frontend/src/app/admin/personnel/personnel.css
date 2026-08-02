@@ -305,19 +305,6 @@ tbody tr:hover {
   margin-top: 1.5rem;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 600px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-}
-
 /* ===== CREDENTIALS GENEREES ===== */
 .credentials-box {
   background: #f8faff;
@@ -416,3 +403,80 @@ tbody tr:hover {
 
 .role-badge.gerant   { background: #eff6ff; color: #3b82f6; }
 .role-badge.pompiste { background: #fff7ed; color: #f59e0b; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   Le tableau garde overflow-x: auto en filet de sécurité (colonnes
+   Login/Email/Dernière connexion ne se compressent pas bien) — mais
+   header, modal, form-row et credentials-grid s'adaptent avant.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tablette / petit desktop */
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    width: calc(100% - 2rem);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-header .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .credentials-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.25rem;
+    width: calc(100% - 1.5rem);
+    border-radius: 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .credentials-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .btn-regenerer {
+    width: 100%;
+  }
+
+  .credential-value {
+    font-size: 0.85rem;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  th, td {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.82rem;
+  }
+}

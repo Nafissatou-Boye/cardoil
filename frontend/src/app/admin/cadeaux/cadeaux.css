@@ -269,7 +269,63 @@
   margin-top: 1.5rem;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   .cadeaux-grid (auto-fill, minmax(280px,1fr)) passe déjà
+   naturellement en 1 colonne sous ~310px de viewport. Ce qui reste
+   à ajuster : header, modal, et les 2-3 boutons d'action par carte
+   qui se tassent sur petit écran.
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    width: calc(100% - 2rem);
+  }
+}
+
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
+
   .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+
+  .page-header .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .cadeau-actions {
+    flex-direction: column;
+  }
+
+  .cadeau-actions .btn-action {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.25rem;
+    width: calc(100% - 1.5rem);
+    border-radius: 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .cadeau-card {
+    padding: 1.25rem;
+  }
+
+  .cadeau-infos {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }

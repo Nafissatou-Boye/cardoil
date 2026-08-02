@@ -348,8 +348,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new EntityNotFoundException("Opérateur non trouvé"));
         Station station = resolveStation(operateur);
 
-        List<Transaction> transactions =
-                transactionRepository.findTop10ByStationIdOrderByDateTransactionDesc(station.getId());
+
+        List<Transaction> transactions = operateur.getRole() == Role.POMPISTE
+                ? transactionRepository.findTop10ByStationIdAndOperateurIdAndTypeNotOrderByDateTransactionDesc(
+                        station.getId(), operateur.getId(), TypeTransaction.RECHARGE)
+                : transactionRepository.findTop10ByStationIdOrderByDateTransactionDesc(station.getId());
 
         return transactions.stream().map(t -> TransactionRecenteResponse.builder()
                         .id(t.getId())
@@ -368,6 +371,256 @@ public class TransactionServiceImpl implements TransactionService {
                                 && t.getDateTransaction().toLocalDate().isEqual(LocalDate.now()))
                         .build())
                 .toList();
+    }
+
+    @Override
+    public List<HistoriqueTransactionResponse> getTransactionsClient(String loginClient) {
+        Utilisateur utilisateur = utilisateurRepository.findByLogin(loginClient)
+                .orElseThrow(() -> new EntityNotFoundException("Client non trouvé"));
+
+        List<Transaction> transactions =
+                transactionRepository.findByClientIdOrderByDateTransactionDesc(utilisateur.getId());
+
+        return transactions.stream().map(t -> HistoriqueTransactionResponse.builder()
+                        .id(t.getId())
+                        .reference(t.getReference())
+                        .montant(t.getMontant())
+                        .type(t.getType().name())
+                        .statut(t.getStatut().name())
+                        .produitOuServiceNom(t.getProduit() != null ? t.getProduit().getNom()
+                                : (t.getService() != null ? t.getService().getNom() : null))
+                        .stationNom(t.getStation().getNom())
+                        .dateTransaction(t.getDateTransaction())
+                        .pointsGagnes(t.getPointsGagnes())
+                        .build())
+                .toList();
+    }
+
+
+    @Override
+    @Transactional(noRollbackFor = IllegalStateException.class)
+    public ConfirmerTransactionResponse confirmerTransactionEmploye(String loginEmploye, ConfirmerTransactionRequest request) {
+        Utilisateur utilisateur = utilisateurRepository.findByLogin(loginEmploye)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur non trouvé"));
+
+        if (!(utilisateur instanceof Employe employe)) {
+            throw new IllegalStateException("Cette action est réservée aux employés");
+        }
+
+        Carte carte = carteRepository.findByEmployeId(employe.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Aucune carte associée à cet employé"));
+
+        if (carte.getStatut() != StatutCarte.ACTIVE) {
+            throw new IllegalStateException("Cette carte n'est pas active");
+        }
+
+        Transaction transaction = transactionRepository.findByCodeConfirmation(request.getCode())
+                .orElseThrow(() -> new EntityNotFoundException("Code invalide"));
+
+        if (transaction.getStatut() != StatutTransaction.EN_ATTENTE) {
+            throw new IllegalStateException("Cette transaction a déjà été traitée");
+        }
+        if (transaction.getCodeConfirmationExpiration().isBefore(LocalDateTime.now())) {
+            transaction.setStatut(StatutTransaction.ECHEC);
+            transactionRepository.save(transaction);
+            throw new IllegalStateException("Code expiré, demandez à l'opérateur de réessayer");
+        }
+
+        BigDecimal montant = transaction.getMontant();
+
+        if (carte.getSolde().compareTo(montant) < 0) {
+            transaction.setStatut(StatutTransaction.ECHEC);
+            transaction.setClient(employe);
+            transactionRepository.save(transaction);
+            throw new IllegalStateException("Solde insuffisant");
+        }
+
+        carte.setSolde(carte.getSolde().subtract(montant));
+        carteRepository.save(carte);
+
+        transaction.setClient(employe);
+        transaction.setStatut(StatutTransaction.REUSSIE);
+        transaction.setCodeConfirmation(null);
+        transaction = transactionRepository.save(transaction);
+
+        String nomArticle = transaction.getProduit() != null
+                ? transaction.getProduit().getNom()
+                : (transaction.getService() != null ? transaction.getService().getNom() : null);
+
+        creerNotification(employe, "Paiement réussi",
+                "Votre paiement de " + montant + " FCFA a été confirmé.",
+                TypeNotificationPersonnelle.PAIEMENT_REUSSI, transaction);
+
+        return ConfirmerTransactionResponse.builder()
+                .transactionId(transaction.getId())
+                .reference(transaction.getReference())
+                .montant(montant)
+                .produitNom(nomArticle)
+                .stationNom(transaction.getStation().getNom())
+                .nouveauSolde(carte.getSolde())
+                .statut(transaction.getStatut().name())
+                .dateTransaction(transaction.getDateTransaction())
+                .pointsGagnes(0)
+                .build();
+    }
+
+   
+    @Override
+    @Transactional(noRollbackFor = IllegalStateException.class)
+    public PayerParQrResponse payerParQr(String loginOperateur, PayerParQrRequest request) {
+        Utilisateur operateur = utilisateurRepository.findByLogin(loginOperateur)
+                .orElseThrow(() -> new EntityNotFoundException("Opérateur non trouvé"));
+        Station station = resolveStation(operateur);
+        Long compagnieId = station.getCompagnie().getId();
+
+        Produit produit = null;
+        ServiceCatalogue service = null;
+        String nomArticle;
+
+        if (request.getProduitId() != null) {
+            produit = produitRepository.findByIdAndCompagnieId(request.getProduitId(), compagnieId)
+                    .orElseThrow(() -> new EntityNotFoundException("Produit non trouvé pour cette compagnie"));
+            nomArticle = produit.getNom();
+        } else {
+            service = serviceCatalogueRepository.findByIdAndCompagnieId(request.getServiceId(), compagnieId)
+                    .orElseThrow(() -> new EntityNotFoundException("Service non trouvé pour cette compagnie"));
+            if (service.getStatut() != StatutService.ACTIF) {
+                throw new IllegalStateException("Ce service n'est pas actif");
+            }
+            if (!estDisponibleDansStation(service, station)) {
+                throw new IllegalStateException("Ce service n'est pas disponible dans cette station");
+            }
+            nomArticle = service.getNom();
+        }
+
+     
+        var clientOpt = clientRepository.findByQrCode(request.getCode());
+        var carteOpt = carteRepository.findByCodeQr(request.getCode());
+
+        if (clientOpt.isEmpty() && carteOpt.isEmpty()) {
+            throw new EntityNotFoundException("QR code invalide ou expiré");
+        }
+
+        BigDecimal montant = request.getMontant();
+        Transaction transaction;
+        BigDecimal nouveauSolde;
+        String porteurNom;
+        Integer pointsGagnes = null;
+
+        if (clientOpt.isPresent()) {
+            Client client = clientOpt.get();
+            if (client.getQrCodeExpiration() == null || client.getQrCodeExpiration().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("QR code expiré, demandez au client de le régénérer");
+            }
+
+            transaction = Transaction.builder()
+                    .montant(montant).type(TypeTransaction.ACHAT).statut(StatutTransaction.EN_ATTENTE)
+                    .produit(produit).service(service).station(station).operateur(operateur)
+                    .client(client).reference(genererReference())
+                    .build();
+
+            if (client.getSolde().compareTo(montant) < 0) {
+                transaction.setStatut(StatutTransaction.ECHEC);
+                transactionRepository.save(transaction);
+                throw new IllegalStateException("Solde insuffisant");
+            }
+
+            client.setSolde(client.getSolde().subtract(montant));
+            pointsGagnes = crediterPointsFidelite(client, station.getCompagnie(), montant);
+            client.setQrCode(null);
+            client.setQrCodeExpiration(null);
+            clientRepository.save(client);
+
+            transaction.setStatut(StatutTransaction.REUSSIE);
+            transaction.setPointsGagnes(pointsGagnes);
+            transaction = transactionRepository.save(transaction);
+
+            nouveauSolde = client.getSolde();
+            porteurNom = client.getPrenom() + " " + client.getNom();
+
+            creerNotification(client, "Paiement réussi",
+                    "Votre paiement de " + montant + " FCFA a été confirmé.",
+                    TypeNotificationPersonnelle.PAIEMENT_REUSSI, transaction);
+
+        } else {
+            Carte carte = carteOpt.get();
+            if (carte.getCodeQrExpiration() == null || carte.getCodeQrExpiration().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("QR code expiré, demandez à l'employé de le régénérer");
+            }
+            if (carte.getStatut() != StatutCarte.ACTIVE) {
+                throw new IllegalStateException("Cette carte n'est pas active");
+            }
+
+            transaction = Transaction.builder()
+                    .montant(montant).type(TypeTransaction.ACHAT).statut(StatutTransaction.EN_ATTENTE)
+                    .produit(produit).service(service).station(station).operateur(operateur)
+                    .client(carte.getEmploye()).reference(genererReference())
+                    .build();
+
+            if (carte.getSolde().compareTo(montant) < 0) {
+                transaction.setStatut(StatutTransaction.ECHEC);
+                transactionRepository.save(transaction);
+                throw new IllegalStateException("Solde de la carte insuffisant");
+            }
+
+            carte.setSolde(carte.getSolde().subtract(montant));
+            carte.setCodeQr(null);
+            carte.setCodeQrExpiration(null);
+            carteRepository.save(carte);
+
+            transaction.setStatut(StatutTransaction.REUSSIE);
+            transaction = transactionRepository.save(transaction);
+
+            nouveauSolde = carte.getSolde();
+            porteurNom = carte.getEmploye().getPrenom() + " " + carte.getEmploye().getNom();
+
+            creerNotification(carte.getEmploye(), "Paiement réussi",
+                    "Paiement de " + montant + " FCFA effectué avec votre carte.",
+                    TypeNotificationPersonnelle.PAIEMENT_REUSSI, transaction);
+        }
+
+        return PayerParQrResponse.builder()
+                .transactionId(transaction.getId())
+                .reference(transaction.getReference())
+                .montant(montant)
+                .produitNom(nomArticle)
+                .porteurNom(porteurNom)
+                .stationNom(station.getNom())
+                .nouveauSolde(nouveauSolde)
+                .statut(transaction.getStatut().name())
+                .dateTransaction(transaction.getDateTransaction())
+                .pointsGagnes(pointsGagnes)
+                .build();
+    }
+
+
+    @Override
+    public ResoudreQrResponse resoudreQr(String code) {
+        var clientOpt = clientRepository.findByQrCode(code);
+        if (clientOpt.isPresent()) {
+            Client client = clientOpt.get();
+            if (client.getQrCodeExpiration() == null || client.getQrCodeExpiration().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("QR code expiré, demandez au client de le régénérer");
+            }
+            return ResoudreQrResponse.builder()
+                    .porteurNom(client.getPrenom() + " " + client.getNom())
+                    .typePorteur("CLIENT")
+                    .build();
+        }
+
+        var carteOpt = carteRepository.findByCodeQr(code);
+        if (carteOpt.isPresent()) {
+            Carte carte = carteOpt.get();
+            if (carte.getCodeQrExpiration() == null || carte.getCodeQrExpiration().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("QR code expiré, demandez à l'employé de le régénérer");
+            }
+            return ResoudreQrResponse.builder()
+                    .porteurNom(carte.getEmploye().getPrenom() + " " + carte.getEmploye().getNom())
+                    .typePorteur("EMPLOYE")
+                    .build();
+        }
+
+        throw new EntityNotFoundException("QR code invalide ou expiré");
     }
 
     @Override
@@ -392,9 +645,7 @@ public AnnulerTransactionResponse annulerTransaction(String loginOperateur, Long
 
     BigDecimal montant = transaction.getMontant();
 
-    // ✅ On récupère l'ID depuis le proxy (toujours fiable), puis on interroge
-    // le repository TYPÉ (ClientRepository) au lieu de caster le proxy
-    // polymorphe — évite le piège Hibernate JOINED + instanceof sur relation LAZY.
+
     Long clientOuEmployeId = transaction.getClient() != null ? transaction.getClient().getId() : null;
 
     if (clientOuEmployeId != null) {
@@ -524,6 +775,63 @@ public StatsJourResponse getStatsPeriode(String loginOperateur, LocalDate debut,
             .successCount(successCount)
             .build();
             
+}
+
+
+@Override
+@Transactional(noRollbackFor = IllegalStateException.class)
+public RechargeClientResponse rechargerParQr(String loginOperateur, RechargeParQrRequest request) {
+    Utilisateur operateur = utilisateurRepository.findByLogin(loginOperateur)
+            .orElseThrow(() -> new EntityNotFoundException("Opérateur non trouvé"));
+    Station station = resolveStation(operateur);
+
+    var clientOpt = clientRepository.findByQrCode(request.getCode());
+
+    if (clientOpt.isEmpty()) {
+        if (carteRepository.findByCodeQr(request.getCode()).isPresent()) {
+            throw new IllegalStateException(
+                    "Ce QR appartient à un employé — la recharge d'un employé se fait via son entreprise, pas en station");
+        }
+        throw new EntityNotFoundException("QR code invalide ou expiré");
+    }
+
+    Client client = clientOpt.get();
+    if (client.getQrCodeExpiration() == null || client.getQrCodeExpiration().isBefore(LocalDateTime.now())) {
+        throw new IllegalStateException("QR code expiré, demandez au client de le régénérer");
+    }
+
+    Transaction transaction = Transaction.builder()
+            .montant(request.getMontant())
+            .type(TypeTransaction.RECHARGE)
+            .statut(StatutTransaction.REUSSIE)
+            .station(station)
+            .operateur(operateur)
+            .client(client)
+            .reference(genererReference())
+            .build();
+    transaction = transactionRepository.save(transaction);
+
+    client.setSolde(client.getSolde().add(request.getMontant()));
+
+    client.setQrCode(null);
+    client.setQrCodeExpiration(null);
+    clientRepository.save(client);
+
+    creerNotification(client, "Recharge reçue",
+            "Votre compte a été crédité de " + request.getMontant() + " FCFA.",
+            TypeNotificationPersonnelle.RECHARGE_REUSSIE, transaction);
+
+    return RechargeClientResponse.builder()
+            .transactionId(transaction.getId())
+            .reference(transaction.getReference())
+            .montant(request.getMontant())
+            .clientNom(client.getPrenom() + " " + client.getNom())
+            .telephoneMasque(masquerTelephone(client.getTelephone()))
+            .nouveauSolde(client.getSolde())
+            .statut(transaction.getStatut().name())
+            .stationNom(station.getNom())
+            .dateTransaction(transaction.getDateTransaction())
+            .build();
 }
 
 

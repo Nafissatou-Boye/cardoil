@@ -345,13 +345,6 @@
   margin-top: 1.5rem;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 600px) {
-  .form-row { grid-template-columns: 1fr; }
-  .promo-grid { grid-template-columns: 1fr; }
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-}
-
 /* ===== WIZARD ===== */
 .wizard-modal {
   background: #fff;
@@ -585,3 +578,142 @@
 }
 
 .stations-box.toutes { color: #9ca3af; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   Trois paliers : tablette large (900px), tablette/mobile (768px),
+   mobile (480px). Couvre la grille de promos ET le wizard complet
+   (cartes de type, form-row, footer, récap), qui n'étaient pas
+   traités par l'ancien média query unique à 600px.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tablette / petit desktop */
+@media (max-width: 900px) {
+  .type-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablette portrait / grands mobiles */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .promo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    padding: 1.5rem;
+  }
+
+  .wizard-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .wizard-header {
+    padding: 1.25rem 1.25rem 0.875rem;
+  }
+
+  .wizard-body {
+    padding: 1.25rem;
+  }
+
+  .wizard-footer {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .type-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .type-card {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 0.875rem;
+  }
+
+  .promo-regles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .promo-card {
+    padding: 1.25rem;
+  }
+
+  .promo-actions {
+    flex-direction: column;
+  }
+
+  .btn-action {
+    width: 100%;
+    text-align: center;
+  }
+
+  .etapes-nav {
+    gap: 0.375rem;
+    padding: 0.75rem 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .etape-dot {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+
+  .wizard-title h2 {
+    font-size: 1.05rem;
+  }
+
+  .etape-titre {
+    font-size: 0.9rem;
+  }
+
+  .promo-regles {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-footer {
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+  }
+
+  .wizard-footer .btn-primary,
+  .wizard-footer .btn-secondary {
+    width: 100%;
+  }
+
+  .recap-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+  }
+}

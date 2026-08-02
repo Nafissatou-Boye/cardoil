@@ -12,4 +12,5 @@ public interface ServiceCatalogueRepository extends JpaRepository<ServiceCatalog
     List<ServiceCatalogue> findByCompagnieId(Long compagnieId);
     List<ServiceCatalogue> findByCompagnieIdAndStatut(Long compagnieId, StatutService statut);
     Optional<ServiceCatalogue> findByIdAndCompagnieId(Long id, Long compagnieId);
+    boolean existsByCode(String code);
 }

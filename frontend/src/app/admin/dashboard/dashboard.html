@@ -1,47 +1,102 @@
-<div class="page-header">
-  <div>
-    <h1>{{ stats?.nomCompagnie || 'Mon Espace' }}</h1>
-    <p>Vue d'ensemble de votre compagnie — {{ stats?.codeCompagnie }}</p>
-  </div>
-</div>
-
-<div *ngIf="chargement" class="chargement">Chargement des données...</div>
-
-<div *ngIf="stats" class="kpis">
-
-  <div class="kpi-card">
-    <div class="kpi-header">
-      <div class="kpi-icon-wrap bleu">⛽</div>
+<div class="dashboard-page">
+  <section class="hero-card">
+    <div class="hero-copy">
+      <div class="eyebrow">Tableau de bord</div>
+      <h1>{{ stats?.nomCompagnie || 'Mon Espace' }}</h1>
+      <p>
+        Vue d’ensemble de votre compagnie — {{ stats?.codeCompagnie }}
+      </p>
     </div>
-    <div class="kpi-valeur">{{ stats.totalStations }}</div>
-    <div class="kpi-label">Mes Stations</div>
-    <div class="kpi-detail">{{ stats.stationsActives }} actives</div>
-  </div>
 
-  <div class="kpi-card">
-    <div class="kpi-header">
-      <div class="kpi-icon-wrap orange">👥</div>
+    <div class="hero-badge">
+      <span class="hero-badge-label">Opérations</span>
+      <strong>{{ stats?.stationsActives || 0 }}</strong>
+      <span>stations actives</span>
     </div>
-    <div class="kpi-valeur">{{ stats.totalEmployes }}</div>
-    <div class="kpi-label">Mon Personnel</div>
-    <div class="kpi-detail">Membres de l'équipe</div>
+  </section>
+
+  <div *ngIf="chargement" class="loading-card">
+    Chargement des données...
   </div>
 
-  <div class="kpi-card">
-    <div class="kpi-header">
-      <div class="kpi-icon-wrap vert">🏢</div>
-    </div>
-    <div class="kpi-valeur">{{ stats.codeCompagnie }}</div>
-    <div class="kpi-label">Code Compagnie</div>
-    <div class="kpi-detail">{{ stats.nomCompagnie }}</div>
-  </div>
+  <section *ngIf="stats" class="kpi-grid">
+    <article class="kpi-card kpi-blue">
+      <div class="kpi-top">
+        <div class="kpi-icon">⛽</div>
+        <span class="kpi-chip">Réseau</span>
+      </div>
+      <div class="kpi-value">{{ stats.totalStations }}</div>
+      <div class="kpi-label">Mes Stations</div>
+      <div class="kpi-detail">{{ stats.stationsActives }} actives</div>
+    </article>
 
-</div>
+    <article class="kpi-card kpi-amber">
+      <div class="kpi-top">
+        <div class="kpi-icon">👥</div>
+        <span class="kpi-chip">Équipe</span>
+      </div>
+      <div class="kpi-value">{{ stats.totalEmployes }}</div>
+      <div class="kpi-label">Mon Personnel</div>
+      <div class="kpi-detail">Membres de l'équipe</div>
+    </article>
 
-<div *ngIf="stats" class="welcome-card">
-  <div class="welcome-icon">👋</div>
-  <div>
-    <h3>Bienvenue, {{ stats.nomCompagnie }} !</h3>
-    <p>Gérez vos stations et votre personnel depuis ce tableau de bord. Utilisez le menu à gauche pour accéder aux différentes sections.</p>
-  </div>
+    <article class="kpi-card kpi-green">
+      <div class="kpi-top">
+        <div class="kpi-icon">🏢</div>
+        <span class="kpi-chip">Entreprise</span>
+      </div>
+      <div class="kpi-value">{{ stats.codeCompagnie }}</div>
+      <div class="kpi-label">Code Compagnie</div>
+      <div class="kpi-detail">{{ stats.nomCompagnie }}</div>
+    </article>
+  </section>
+
+  <section *ngIf="stats" class="content-grid">
+    <article class="welcome-card">
+      <div class="welcome-icon">👋</div>
+      <div>
+        <h3>Bienvenue, {{ stats.nomCompagnie }} !</h3>
+        <p>
+          Gérez vos stations, vos équipes et vos opérations depuis une interface claire,
+          élégante et pensée pour une utilisation quotidienne.
+        </p>
+      </div>
+    </article>
+
+    <article class="info-card">
+      <div class="section-title">Accès rapide</div>
+      <div class="shortcut-list">
+        <!-- ✅ routerLink au lieu de href="#" — chemins relatifs (sans slash
+             initial) plutôt qu'absolus : Dashboard, Stations, Personnel et
+             Rapports sont tous frères sous le même LayoutComponent parent
+             dans ADMIN_ROUTES, donc un lien relatif fonctionne peu importe
+             le préfixe de montage global de cette section (jamais vu). -->
+        <a routerLink="stations" class="shortcut-item">
+          <span>📍</span>
+          <div>
+            <strong>Stations</strong>
+            <p>Consulter le réseau</p>
+          </div>
+        </a>
+
+        <a routerLink="personnel" class="shortcut-item">
+          <span>🧑‍💼</span>
+          <div>
+            <strong>Personnel</strong>
+            <p>Gérer les équipes</p>
+          </div>
+        </a>
+
+        <!-- Pas de route "statistiques" dédiée — rapports est l'équivalent
+             le plus proche (CA, transactions par période). -->
+        <a routerLink="rapports" class="shortcut-item">
+          <span>📊</span>
+          <div>
+            <strong>Statistiques</strong>
+            <p>Suivre la performance</p>
+          </div>
+        </a>
+      </div>
+    </article>
+  </section>
 </div>

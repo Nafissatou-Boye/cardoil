@@ -260,11 +260,6 @@ tbody tr:hover { background: #f9fafb; }
   margin-top: 1.5rem;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 600px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-}
-
 .programmation {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
@@ -300,4 +295,74 @@ tbody tr:hover { background: #f9fafb; }
   background: #eff6ff; color: #1d4ed8;
   font-size: 0.7rem; font-weight: 600;
   padding: 0.15rem 0.5rem; border-radius: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   Les tableaux gardent overflow-x: auto en filet de sécurité pour
+   les colonnes qui ne se compressent pas (Nom, Type, Prix, Date) —
+   mais header, modals et sous-tableau de programmation s'adaptent
+   avant d'en arriver au scroll horizontal.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tablette / petit desktop */
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    width: calc(100% - 2rem);
+  }
+
+  .table-programmation {
+    font-size: 0.78rem;
+  }
+
+  .table-programmation th,
+  .table-programmation td {
+    padding: 0.4rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-header .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.25rem;
+    width: calc(100% - 1.5rem);
+    border-radius: 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .btn-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  th, td {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.82rem;
+  }
 }

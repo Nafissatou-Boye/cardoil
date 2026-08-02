@@ -266,13 +266,6 @@
   flex: 1;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main { margin-left: 0; }
-  .search-bar { display: none; }
-}
-
 .nav-icon.material-icons {
   font-size: 1.2rem;
   width: 20px;
@@ -283,4 +276,97 @@
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablette : sidebar réduite en icônes seules */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .sidebar-logo {
+    padding: 0 0.75rem 1.5rem;
+    justify-content: center;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .nav-item span:not(.nav-icon) {
+    display: none;
+  }
+
+  .nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .main {
+    margin-left: 80px;
+  }
+
+  .topbar {
+    padding: 1rem 1.5rem;
+  }
+}
+
+/* Mobile : sidebar cachée, topbar allégée */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .search-bar {
+    display: none;
+  }
+
+  .topbar {
+    padding: 1rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+
+  .content {
+    padding: 1.25rem;
+  }
+}
+
+/* Très petit écran */
+@media (max-width: 480px) {
+  .topbar-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-notif {
+    width: 34px;
+    height: 34px;
+  }
+
+  .breadcrumb span:not(:last-child) {
+    display: none;
+  }
+
+  .content {
+    padding: 1rem;
+  }
 }

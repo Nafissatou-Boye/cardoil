@@ -59,6 +59,14 @@ public class Carte {
     // Empêche une double application du renouvellement le même jour
     private LocalDate derniereDateRenouvellement;
 
+    // ── QR dynamique (identité employé, scanné par le pompiste/gérant) ────
+    // Miroir de Client.qrCode / Client.qrCodeExpiration. Utilisé par
+    // EmployeCompteServiceImpl.genererQrCode() et
+    // TransactionServiceImpl.payerParQr(). Null après un paiement réussi
+    // (usage unique) ou avant toute génération.
+    private String codeQr;
+    private LocalDateTime codeQrExpiration;
+
     @PrePersist
     public void prePersist() {
         this.dateCreation = LocalDateTime.now();
