@@ -25,7 +25,7 @@ public class EmailService {
             "  Login       : " + login + "\n" +
             "  Mot de passe : " + motDePasse + "\n\n" +
             "⚠️ Vous devrez changer votre mot de passe à la première connexion.\n\n" +
-            "Accédez à la plateforme sur : http://localhost:4200/login\n\n" +
+            "Accédez à la plateforme sur : https://test.cardoil.io/login\n\n" +
             "Cordialement,\n" +
             "L'équipe Cardoil"
         );
@@ -51,7 +51,7 @@ public class EmailService {
             "  Login       : " + login + "\n" +
             "  Mot de passe : " + motDePasse + "\n\n" +
             "⚠️ Vous devrez changer votre mot de passe à la première connexion.\n\n" +
-            "Accédez à la plateforme sur : http://localhost:4200/login\n\n" +
+            "Accédez à la plateforme sur : https://test.cardoil.io/login\n\n" +
             "Cordialement,\n" +
             "L'équipe Cardoil"
         );
@@ -76,7 +76,7 @@ public class EmailService {
             "  Login       : " + login + "\n" +
             "  Mot de passe : " + motDePasse + "\n\n" +
             "⚠️ Vous devrez changer votre mot de passe à la première connexion.\n\n" +
-            "Accédez à la plateforme sur : http://localhost:4200/login\n\n" +
+            "Accédez à la plateforme sur : https://test.cardoil.io/login\n\n" +
             "Cordialement,\n" +
             "L'équipe Cardoil"
         );

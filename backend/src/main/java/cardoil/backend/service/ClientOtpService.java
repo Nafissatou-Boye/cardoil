@@ -83,7 +83,7 @@ public class ClientOtpService {
         }
     }
 
-    // ===== Renvoi du code (compte déjà créé, pas encore vérifié) =====
+
 
     @Transactional
     public void renvoyerOtp(String telephone) {
@@ -105,7 +105,7 @@ public class ClientOtpService {
         }
     }
 
-    // ===== Vérification (finalise l'inscription, le mot de passe est déjà défini) =====
+
 
     @Transactional
     public void verifierOtp(String telephone, String code) {
@@ -129,11 +129,14 @@ public class ClientOtpService {
         clientRepository.save(client);
     }
 
+   
+    @Transactional(readOnly = true)
     public List<CompagnieOptionResponse> getCompagniesDisponibles() {
         return compagnieRepository.findAll().stream()
                 .map(c -> CompagnieOptionResponse.builder()
                         .id(c.getId())
                         .nom(c.getNom())
+                        .indicatifPays(c.getPays() != null ? c.getPays().getIndicatifTel() : null)
                         .build())
                 .toList();
     }

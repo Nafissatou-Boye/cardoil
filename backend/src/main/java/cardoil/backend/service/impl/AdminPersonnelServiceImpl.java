@@ -214,7 +214,21 @@ public PersonnelResponse createAdminEntreprise(String login, Long entrepriseId, 
         return sb.toString();
     }
 
+
     private void assignerStation(Compagnie compagnie, Utilisateur utilisateur, Long nouvelleStationId) {
+        if (utilisateur.getRole() == Role.POMPISTE) {
+            if (nouvelleStationId != null) {
+                Station station = stationRepository.findByIdAndCompagnieId(nouvelleStationId, compagnie.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Station non trouvée"));
+                utilisateur.setStation(station);
+            } else {
+                utilisateur.setStation(null);
+            }
+            utilisateurRepository.save(utilisateur);
+            return;
+        }
+
+        // Gérant : comportement inchangé, via Station.gerant.
         stationRepository.findByGerantId(utilisateur.getId())
                 .forEach(station -> {
                     if (nouvelleStationId == null || !station.getId().equals(nouvelleStationId)) {
@@ -242,15 +256,27 @@ public PersonnelResponse createAdminEntreprise(String login, Long entrepriseId, 
         return utilisateur.getCompagnie();
     }
 
+ 
     private PersonnelResponse toResponse(Utilisateur utilisateur) {
-        PersonnelResponse.StationInfo stationInfo = stationRepository.findByGerantId(utilisateur.getId())
-                .stream()
-                .findFirst()
-                .map(s -> PersonnelResponse.StationInfo.builder()
-                        .id(s.getId())
-                        .nom(s.getNom())
-                        .build())
-                .orElse(null);
+        PersonnelResponse.StationInfo stationInfo;
+
+        if (utilisateur.getRole() == Role.POMPISTE) {
+            stationInfo = utilisateur.getStation() != null
+                    ? PersonnelResponse.StationInfo.builder()
+                        .id(utilisateur.getStation().getId())
+                        .nom(utilisateur.getStation().getNom())
+                        .build()
+                    : null;
+        } else {
+            stationInfo = stationRepository.findByGerantId(utilisateur.getId())
+                    .stream()
+                    .findFirst()
+                    .map(s -> PersonnelResponse.StationInfo.builder()
+                            .id(s.getId())
+                            .nom(s.getNom())
+                            .build())
+                    .orElse(null);
+        }
 
         return PersonnelResponse.builder()
                 .id(utilisateur.getId())

@@ -64,9 +64,6 @@ public class FileUploadController {
             default -> "";
         };
 
-        // Nom généré, jamais le nom original — évite toute traversée de
-        // chemin et toute collision entre deux admins qui uploaderaient un
-        // fichier au même nom.
         String nomFichier = UUID.randomUUID() + extension;
 
         Path dossier = Paths.get("uploads", "services", compagnie.getId().toString());
@@ -74,9 +71,7 @@ public class FileUploadController {
         Path destination = dossier.resolve(nomFichier);
         fichier.transferTo(destination);
 
-        // Chemin relatif renvoyé, pas une URL absolue — le backend ne sait
-        // pas s'il est appelé depuis localhost (navigateur) ou 10.0.2.2
-        // (émulateur Android) ; chaque client préfixe avec sa propre base.
+       
         String url = "/uploads/services/" + compagnie.getId() + "/" + nomFichier;
         return ResponseEntity.ok(Map.of("url", url));
     }
