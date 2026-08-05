@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminPromotionService, Promotion } from '../../core/services/admin-promotion.service';
 import { AdminStationService } from '../../core/services/admin-station.service';
 import { Station } from '../../core/services/station.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-promotions',
@@ -18,6 +19,11 @@ export class PromotionsComponent implements OnInit {
   listeStations: Station[] = [];
   chargement = true;
   enregistrement = false;
+
+  // ✅ Nouveau — état de l'upload d'image, séparé de enregistrement
+  // (l'upload se fait pendant qu'on remplit le wizard, pas à la
+  // soumission finale).
+  uploadEnCours = false;
 
   // Wizard
   wizardOuvert = false;
@@ -67,7 +73,7 @@ export class PromotionsComponent implements OnInit {
 
   nouvellePromotion(): Promotion {
     return {
-      nom: '', description: '', type: 'POINTS',
+      nom: '', description: '', imageUrl: null, type: 'POINTS',
       dateDebut: '', dateFin: '',
       montantMinimum: null, stationIds: [],
       plafondParClient: null, plafondGlobal: null, plafondJournalier: null,
@@ -75,6 +81,47 @@ export class PromotionsComponent implements OnInit {
       descriptionCadeau: null, stockCadeaux: null,
       probabiliteGain: null, descriptionLot: null
     };
+  }
+
+  // ===== IMAGE =====
+
+  // ✅ Nouveau — upload immédiat au choix du fichier (pas à la soumission
+  // du wizard) : promo.imageUrl est mis à jour dès que l'upload réussit,
+  // ce qui permet l'aperçu à l'étape 1 et au récapitulatif.
+  onFichierSelectionne(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const fichier = input.files?.[0];
+    if (!fichier) return;
+
+    this.uploadEnCours = true;
+    this.erreur = '';
+
+    this.adminPromotionService.uploaderImage(fichier).subscribe({
+      next: (res) => {
+        this.promo.imageUrl = res.url;
+        this.uploadEnCours = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.erreur = err.error?.erreur || "Échec de l'upload de l'image";
+        this.uploadEnCours = false;
+        this.cdr.detectChanges();
+      }
+    });
+
+  
+    input.value = '';
+  }
+
+  retirerImage(): void {
+    this.promo.imageUrl = null;
+  }
+
+
+  getImageUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    const base = environment.apiUrl.replace(/\/api\/?$/, '');
+    return base + url;
   }
 
   // ===== WIZARD =====

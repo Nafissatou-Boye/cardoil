@@ -25,6 +25,9 @@ public class Promotion {
 
     private String description;
 
+
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TypePromotion type;

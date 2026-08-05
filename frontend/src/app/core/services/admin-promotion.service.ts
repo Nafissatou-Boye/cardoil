@@ -12,6 +12,8 @@ export interface Promotion {
   id?: number;
   nom: string;
   description: string;
+
+  imageUrl?: string | null;
   type: string;
   statut?: string;
   dateDebut: string;
@@ -46,6 +48,8 @@ export interface Promotion {
 export class AdminPromotionService {
 
   private apiUrl = `${environment.apiUrl}/admin/promotions`;
+ 
+  private uploadUrl = `${environment.apiUrl}/admin/upload/promotion`;
 
   constructor(private http: HttpClient) {}
 
@@ -67,5 +71,12 @@ export class AdminPromotionService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+
+  uploaderImage(fichier: File): Observable<{ url: string }> {
+    const formData = new FormData();
+    formData.append('fichier', fichier);
+    return this.http.post<{ url: string }>(this.uploadUrl, formData);
   }
 }

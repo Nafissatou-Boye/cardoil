@@ -49,6 +49,7 @@ public class AdminPromotionServiceImpl implements AdminPromotionService {
         Promotion promotion = Promotion.builder()
                 .nom(request.getNom())
                 .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
                 .type(request.getType())
                 .statut(StatutPromotion.DRAFT)
                 .dateDebut(request.getDateDebut())
@@ -88,6 +89,7 @@ public class AdminPromotionServiceImpl implements AdminPromotionService {
 
         promotion.setNom(request.getNom());
         promotion.setDescription(request.getDescription());
+        promotion.setImageUrl(request.getImageUrl());
         promotion.setType(request.getType());
         promotion.setDateDebut(request.getDateDebut());
         promotion.setDateFin(request.getDateFin());
@@ -154,12 +156,6 @@ public class AdminPromotionServiceImpl implements AdminPromotionService {
 
     // ===== HELPERS =====
 
-    // ✅ Fix : List.of() (cas vide) et .toList() (Stream, Java 16+) sont
-    // TOUS LES DEUX immuables — assignés à stationsConcernees, une
-    // collection @ManyToMany gérée par Hibernate, qui a besoin de pouvoir
-    // la modifier en interne pour synchroniser la table de jointure. Même
-    // piège, même correctif que ServiceCatalogue.stationsDisponibles
-    // (AdminCompagnieServiceCatalogueServiceImpl.assignerStations).
     private List<Station> resolveStations(List<Long> stationIds, Long compagnieId) {
         if (stationIds == null || stationIds.isEmpty()) return new ArrayList<>();
         return new ArrayList<>(stationIds.stream()
@@ -218,6 +214,7 @@ public class AdminPromotionServiceImpl implements AdminPromotionService {
                 .id(p.getId())
                 .nom(p.getNom())
                 .description(p.getDescription())
+                .imageUrl(p.getImageUrl())
                 .type(p.getType().name())
                 .statut(p.getStatut().name())
                 .dateDebut(p.getDateDebut().format(FORMATTER))

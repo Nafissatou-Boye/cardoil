@@ -17,6 +17,8 @@ public class PromotionResponse {
     private Long id;
     private String nom;
     private String description;
+    
+    private String imageUrl;
     private String type;
     private String statut;
     private String dateDebut;

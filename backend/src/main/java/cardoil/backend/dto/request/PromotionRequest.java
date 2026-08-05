@@ -23,6 +23,9 @@ public class PromotionRequest {
     private String nom;
     private String description;
 
+
+    private String imageUrl;
+
     @NotNull(message = "Le type est obligatoire")
     private TypePromotion type;
 

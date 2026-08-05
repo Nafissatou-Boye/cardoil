@@ -22,10 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-// Endpoint autonome (pas lié à un serviceId) : permet de choisir l'image
-// PENDANT la création d'un nouveau service, avant qu'il ait un id.
-// L'admin reste résolu depuis Authentication (même garde qu'ailleurs), un
-// dossier par compagnie pour ranger les fichiers séparément.
+
 @RestController
 @RequestMapping("/api/admin/upload")
 @RequiredArgsConstructor
@@ -44,7 +41,25 @@ public class FileUploadController {
             @RequestParam("fichier") MultipartFile fichier) throws IOException {
 
         Compagnie compagnie = resolveCompagnie(authentication.getName());
+        String nomFichier = validerEtEnregistrer(fichier, compagnie, "services");
+        String url = "/uploads/services/" + compagnie.getId() + "/" + nomFichier;
+        return ResponseEntity.ok(Map.of("url", url));
+    }
 
+
+    @PostMapping("/promotion")
+    public ResponseEntity<Map<String, String>> uploaderImagePromotion(
+            Authentication authentication,
+            @RequestParam("fichier") MultipartFile fichier) throws IOException {
+
+        Compagnie compagnie = resolveCompagnie(authentication.getName());
+        String nomFichier = validerEtEnregistrer(fichier, compagnie, "promotions");
+        String url = "/uploads/promotions/" + compagnie.getId() + "/" + nomFichier;
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
+    private String validerEtEnregistrer(MultipartFile fichier, Compagnie compagnie, String sousDossier)
+            throws IOException {
         if (fichier.isEmpty()) {
             throw new IllegalStateException("Fichier vide");
         }
@@ -66,14 +81,12 @@ public class FileUploadController {
 
         String nomFichier = UUID.randomUUID() + extension;
 
-        Path dossier = Paths.get("uploads", "services", compagnie.getId().toString());
+        Path dossier = Paths.get("uploads", sousDossier, compagnie.getId().toString());
         Files.createDirectories(dossier);
         Path destination = dossier.resolve(nomFichier);
         fichier.transferTo(destination);
 
-       
-        String url = "/uploads/services/" + compagnie.getId() + "/" + nomFichier;
-        return ResponseEntity.ok(Map.of("url", url));
+        return nomFichier;
     }
 
     private Compagnie resolveCompagnie(String login) {

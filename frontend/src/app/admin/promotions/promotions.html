@@ -10,6 +10,9 @@
 
 <div *ngIf="!chargement" class="promo-grid">
   <div class="promo-card" *ngFor="let p of listePromotions">
+    <!-- ✅ Nouveau — image en haut de la carte, uniquement si présente -->
+    <img class="promo-image" *ngIf="p.imageUrl" [src]="getImageUrl(p.imageUrl)" [alt]="p.nom" />
+
     <div class="promo-header">
       <div class="promo-type">
         <span class="type-icon">{{ getTypeIcon(p.type) }}</span>
@@ -128,6 +131,27 @@
           <label>Description</label>
           <textarea [(ngModel)]="promo.description" rows="3"
                     placeholder="Gagnez des points à chaque achat de carburant"></textarea>
+        </div>
+
+        <!-- ✅ Nouveau — champ d'upload d'image -->
+        <div class="form-group">
+          <label>Image de la promotion</label>
+          <p class="field-hint">PNG, JPEG, WEBP ou SVG — 2 Mo maximum</p>
+          <div class="image-upload-zone">
+            <div class="image-preview" *ngIf="promo.imageUrl">
+              <img [src]="getImageUrl(promo.imageUrl)" alt="Aperçu de l'image" />
+              <button type="button" class="btn-retirer-image" (click)="retirerImage()">✕ Retirer</button>
+            </div>
+            <label class="btn-upload-image" *ngIf="!promo.imageUrl">
+              <input type="file"
+                     accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                     (change)="onFichierSelectionne($event)"
+                     [disabled]="uploadEnCours"
+                     hidden />
+              <span *ngIf="!uploadEnCours">📷 Choisir une image</span>
+              <span *ngIf="uploadEnCours">Envoi en cours...</span>
+            </label>
+          </div>
         </div>
 
         <div class="form-group">
@@ -275,6 +299,10 @@
             <div class="recap-item"><span>Nom</span><strong>{{ promo.nom }}</strong></div>
             <div class="recap-item"><span>Type</span><strong>{{ getTypeIcon(promo.type) }} {{ getTypeLabel(promo.type) }}</strong></div>
             <div class="recap-item" *ngIf="promo.description"><span>Description</span><strong>{{ promo.description }}</strong></div>
+            <div class="recap-item" *ngIf="promo.imageUrl">
+              <span>Image</span>
+              <img class="recap-image" [src]="getImageUrl(promo.imageUrl)" alt="Aperçu" />
+            </div>
           </div>
 
           <div class="recap-section">
