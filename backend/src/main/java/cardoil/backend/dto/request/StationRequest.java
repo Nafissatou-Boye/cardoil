@@ -19,10 +19,9 @@ public class StationRequest {
     @NotBlank(message = "L'adresse est obligatoire")
     private String adresse;
 
-    @NotNull(message = "La latitude est obligatoire")
+
     private Double latitude;
 
-    @NotNull(message = "La longitude est obligatoire")
     private Double longitude;
 
     private String telephone;

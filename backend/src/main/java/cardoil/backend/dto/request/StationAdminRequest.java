@@ -1,7 +1,6 @@
 package cardoil.backend.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +18,8 @@ public class StationAdminRequest {
     @NotBlank(message = "L'adresse est obligatoire")
     private String adresse;
 
-    @NotNull(message = "La latitude est obligatoire")
     private Double latitude;
 
-    @NotNull(message = "La longitude est obligatoire")
     private Double longitude;
 
     private String telephone;

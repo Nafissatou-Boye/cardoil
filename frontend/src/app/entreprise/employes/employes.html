@@ -126,7 +126,7 @@
           <label>Département</label>
           <select [(ngModel)]="employeCourant.departementId" name="departementId" class="select-field">
             <option [ngValue]="null">Rattaché directement à l'entreprise</option>
-            <option *ngFor="let d of listeDepartements" [value]="d.id">{{ d.nom }}</option>
+            <option *ngFor="let d of listeDepartements" [ngValue]="d.id">{{ d.nom }}</option>
           </select>
         </div>
 

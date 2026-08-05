@@ -25,7 +25,9 @@
       <tr *ngFor="let station of listeStations">
         <td class="nom-station">{{ station.nom }}</td>
         <td class="adresse-cell">{{ station.adresse }}</td>
-        <td class="coords-cell">{{ station.latitude }}, {{ station.longitude }}</td>
+        <td class="coords-cell">
+  {{ (station.latitude && station.longitude) ? (station.latitude + ', ' + station.longitude) : '—' }}
+</td>
         <td>{{ station.telephone || '—' }}</td>
         <td>{{ station.gerantNom || '—' }}</td>
         <td>

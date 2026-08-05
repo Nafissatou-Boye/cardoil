@@ -24,11 +24,9 @@ public class Station {
     @Column(nullable = false)
     private String adresse;
 
-    // Géolocalisation obligatoire à la création
-    @Column(nullable = false)
+    // Géolocalisation optionnelle
     private Double latitude;
 
-    @Column(nullable = false)
     private Double longitude;
 
     private String telephone;
