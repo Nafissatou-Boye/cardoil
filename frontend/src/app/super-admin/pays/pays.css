@@ -33,6 +33,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -56,15 +57,21 @@
 }
 
 /* ===== TABLE ===== */
+/* ✅ Fix : overflow: hidden seul empêchait tout défilement — même bug
+   que utilisateurs.component.css (Admin Entreprise) avant correction.
+   Sur petit écran, les colonnes qui dépassaient étaient coupées et
+   invisibles plutôt que défilables. */
 .table-card {
   background: #fff;
   border: 1px solid #e8ecf0;
   border-radius: 16px;
   overflow: hidden;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
 }
 
@@ -81,6 +88,7 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   border-bottom: 1px solid #e8ecf0;
+  white-space: nowrap;
 }
 
 td {
@@ -88,6 +96,7 @@ td {
   font-size: 0.9rem;
   color: #1a1a2e;
   border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
 }
 
 tbody tr:last-child td {
@@ -182,6 +191,7 @@ tbody tr:hover {
   align-items: center;
   justify-content: center;
   z-index: 100;
+  padding: 1rem; /* ✅ évite que la modale touche les bords sur petit écran */
 }
 
 .modal {
@@ -277,6 +287,15 @@ tbody tr:hover {
 }
 
 /* ===== RESPONSIVE ===== */
+/* ✅ Nouveau — seul le palier 600px existait. Complété avec 768px et
+   480px, cohérent avec compagnies.component.css (fichier structurellement
+   très proche, déjà sain sur ce point). */
+
+@media (max-width: 768px) {
+  th, td { padding: 0.75rem 1rem; font-size: 0.85rem; }
+  .modal { padding: 1.5rem; }
+}
+
 @media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -287,4 +306,18 @@ tbody tr:hover {
     align-items: flex-start;
     gap: 1rem;
   }
+}
+
+@media (max-width: 480px) {
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    text-align: center;
+  }
+
+  .modal { padding: 1.25rem; }
+  .modal h2 { font-size: 1.1rem; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary { width: 100%; }
 }

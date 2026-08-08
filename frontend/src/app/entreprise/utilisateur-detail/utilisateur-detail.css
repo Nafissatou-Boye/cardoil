@@ -55,11 +55,21 @@
   flex-shrink: 0;
 }
 
+/* ✅ Fix : .identite-info n'avait aucune règle de base (ni flex, ni
+   min-width) — même piège que .welcome-card > div ailleurs dans cette
+   session. Un nom complet long pouvait forcer .identite-card à déborder
+   plutôt que de laisser le texte s'adapter. */
+.identite-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .identite-info h2 {
   font-size: 1.3rem;
   font-weight: 700;
   color: #1a1a2e;
   margin-bottom: 0.5rem;
+  overflow-wrap: break-word;
 }
 
 .identite-badges {
@@ -74,6 +84,7 @@
   font-weight: 700;
   padding: 0.25rem 0.75rem;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .role-badge.employe { background: #eff6ff; color: #3b82f6; }
@@ -84,6 +95,7 @@
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
+  flex-shrink: 0;
 }
 
 .statut-badge.actif   { background: #ecfdf5; color: #10b981; }
@@ -97,6 +109,7 @@
   padding: 0.25rem 0.75rem;
   border-radius: 8px;
   font-family: monospace;
+  flex-shrink: 0;
 }
 
 .section-title {
@@ -125,6 +138,15 @@
 .info-icon {
   color: #9ca3af;
   font-size: 1.25rem !important;
+  flex-shrink: 0;
+}
+
+/* ✅ Fix : le conteneur label+valeur (à côté de .info-icon) n'avait pas
+   de min-width:0 — un identifiant/email long pouvait déborder de
+   .info-item plutôt que de tronquer proprement. */
+.info-item > div {
+  flex: 1;
+  min-width: 0;
 }
 
 .info-label {
@@ -139,6 +161,7 @@
   font-size: 0.875rem;
   color: #1a1a2e;
   font-weight: 600;
+  overflow-wrap: break-word;
 }
 
 .monospace { font-family: monospace; }
@@ -160,15 +183,29 @@
   margin-bottom: 1rem;
 }
 
-.carte-detail-header strong { display: block; font-size: 1rem; color: #1a1a2e; }
+/* ✅ Fix : même piège — le bloc texte (strong + .sous-texte) à côté de
+   l'icône/avatar de la carte n'avait pas de min-width:0. */
+.carte-detail-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.carte-detail-header strong { display: block; font-size: 1rem; color: #1a1a2e; overflow-wrap: break-word; }
 .sous-texte { font-size: 0.8rem; color: #9ca3af; }
 
 .carte-detail-body {
   display: flex;
+  flex-wrap: wrap;
   gap: 2rem;
 }
 
+/* ✅ Fix : plusieurs .carte-stat côte à côte sans flex/min-width — sur
+   petit écran, plusieurs montants pouvaient forcer .carte-detail-body à
+   déborder plutôt que de s'enrouler à la ligne suivante (flex-wrap
+   ajouté ci-dessus) ou de rétrécir proprement. */
 .carte-stat {
+  flex: 1;
+  min-width: 100px;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -188,14 +225,18 @@
   margin-bottom: 0.625rem;
 }
 
+/* ✅ Fix : même piège que .admin-info/.credential-item ailleurs dans
+   cette session — .recharge-info n'avait pas min-width:0. */
 .recharge-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 
 .recharge-info strong { font-size: 0.9rem; color: #10b981; }
-.recharge-info span { font-size: 0.78rem; color: #9ca3af; }
+.recharge-info span { font-size: 0.78rem; color: #9ca3af; overflow-wrap: break-word; }
 
 .empty-state {
   display: flex;
@@ -212,3 +253,26 @@
 .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
 .empty-state p { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 0.25rem; }
 .empty-state span { font-size: 0.825rem; color: #9ca3af; }
+
+/* ===== RESPONSIVE ===== */
+/* ✅ Nouveau — ce fichier n'avait aucun media query, contrairement à tous
+   les autres composants déjà vus cette session. */
+@media (max-width: 600px) {
+  .identite-card {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .carte-detail-header {
+    flex-wrap: wrap;
+  }
+
+  .carte-detail-body {
+    gap: 1.25rem;
+  }
+
+  .recharge-item {
+    flex-wrap: wrap;
+  }
+}

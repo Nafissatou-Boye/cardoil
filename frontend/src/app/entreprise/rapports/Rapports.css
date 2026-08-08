@@ -61,7 +61,17 @@
   flex-shrink: 0;
 }
 
-.stat-info { display: flex; flex-direction: column; gap: 0.15rem; }
+/* ✅ Fix : ni flex:1 ni min-width:0 — même piège que .status-info déjà
+   corrigé dans entreprise-dashboard.css. Sans flex:1, ne prend même pas
+   l'espace disponible ; sans min-width:0, un libellé long pourrait
+   forcer .stat-card à déborder. */
+.stat-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
 .stat-value { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; }
 .stat-label { font-size: 0.78rem; color: #9ca3af; }
 
@@ -111,15 +121,22 @@
   line-height: 1.5;
 }
 
+/* ✅ Fix : overflow: hidden coupait silencieusement les colonnes qui
+   dépassaient sur petit écran (données invisibles, pas juste débordantes)
+   au lieu de les rendre accessibles par scroll horizontal. Même pattern
+   que .table-scroll dans transactions.component.css. */
 .table-container {
   background: #fff;
   border: 1px solid #e8ecf0;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tableau-rapport {
   width: 100%;
+  min-width: 560px; /* évite que les colonnes s'écrasent illisibles avant de scroller */
   border-collapse: collapse;
 }
 
@@ -136,6 +153,7 @@
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .tableau-rapport td {
@@ -143,6 +161,7 @@
   font-size: 0.875rem;
   color: #374151;
   border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
 }
 
 .tableau-rapport tr:last-child td { border-bottom: none; }
@@ -177,7 +196,10 @@
   margin-bottom: 0.625rem;
 }
 
+/* ✅ Fix : même correctif que .stat-info ci-dessus. */
 .recharge-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
@@ -200,3 +222,21 @@
 
 .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
 .empty-state p { font-size: 1rem; font-weight: 600; color: #1a1a2e; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .onglets {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .onglet-btn {
+    flex-shrink: 0;
+  }
+
+  .stat-card {
+    padding: 1.1rem;
+  }
+}

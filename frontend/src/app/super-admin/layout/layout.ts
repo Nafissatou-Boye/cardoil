@@ -16,6 +16,13 @@ export class LayoutComponent implements OnInit {
   prenom = localStorage.getItem('prenom');
   pageTitle = 'Dashboard';
 
+  // ✅ Nouveau — même pattern que le layout Admin Compagnie : tiroir
+  // hors-écran par défaut sur mobile, ouvert via le bouton hamburger,
+  // fermé au clic sur le fond d'écran ou à chaque navigation. Remplace
+  // l'ancien "display: none" qui coupait tout accès à la navigation sur
+  // mobile sans rien pour la remplacer.
+  menuMobileOuvert = false;
+
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -27,8 +34,17 @@ export class LayoutComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
       this.updateTitle();
+      this.menuMobileOuvert = false;
       this.cdr.detectChanges();
     });
+  }
+
+  ouvrirMenuMobile(): void {
+    this.menuMobileOuvert = true;
+  }
+
+  fermerMenuMobile(): void {
+    this.menuMobileOuvert = false;
   }
 
   private updateTitle(): void {

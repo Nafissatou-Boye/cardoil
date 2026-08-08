@@ -50,7 +50,7 @@
   overflow-y: hidden;
 }
 
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; min-width: 620px; border-collapse: collapse; }
 
 th {
   text-align: left;
@@ -183,11 +183,35 @@ td.centre { text-align: center; }
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 12px;
   margin-bottom: 16px;
 }
+
+/* ✅ Fix : le bloc titre+sous-titre (h2 + .subtitle) n'avait pas de
+   min-width:0 — même piège que .identite-info/.carte-detail-header
+   déjà corrigés cette session. Un nom d'établissement long pouvait
+   forcer .modal-liaisons-header à déborder à côté d'un bouton fixe. */
+.modal-liaisons-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
 .modal-liaisons-header .subtitle { margin: 2px 0 0; }
 
-.table-liaisons { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+/* ✅ Fix : .table-liaisons n'avait aucun overflow-x dédié, contrairement
+   au tableau principal (.table-card). Dans une modale à max-width: 95vw
+   sur petit écran, plusieurs colonnes pouvaient déborder de la modale ou
+   se compresser illisiblement, sans moyen de les faire défiler
+   séparément. overflow-x fonctionne directement sur un <table>, pas
+   besoin de wrapper supplémentaire. */
+.table-liaisons {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
 .table-liaisons th {
   text-align: left;
   font-size: 11px;
@@ -195,11 +219,13 @@ td.centre { text-align: center; }
   color: #6b7280;
   padding: 8px 10px;
   border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
 }
 .table-liaisons td {
   padding: 10px;
   border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .btn-ajouter-liaison {

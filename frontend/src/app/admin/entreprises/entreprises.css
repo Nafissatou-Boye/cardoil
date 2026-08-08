@@ -302,8 +302,15 @@
   flex-shrink: 0;
 }
 
+/* ✅ Fix : min-width:0 n'existait qu'à l'intérieur de
+   @media (max-width: 480px) — entre 480px et 768px (tablette, petit
+   laptop en fenêtre réduite), .admin-info n'était pas encore protégée
+   contre le débordement si le nom/rôle affiché était long. Déplacé ici
+   pour s'appliquer à toutes les tailles : sans effet visuel sur grand
+   écran, ne fait qu'autoriser le rétrécissement si besoin. */
 .admin-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -341,6 +348,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid #d1fae5;
 }
@@ -351,8 +359,13 @@
   font-size: 0.8rem;
   color: #6b7280;
   font-weight: 500;
+  flex-shrink: 0; /* ✅ le libellé (court, fixe) ne doit jamais rétrécir */
 }
 
+/* ✅ Fix : max-width/word-break n'existaient qu'en dessous de 480px —
+   même incohérence que .admin-info. Un mot de passe temporaire
+   alphanumérique long pouvait déborder de .credential-item entre 480px
+   et 768px sans être protégé. */
 .credential-valeur {
   font-family: monospace;
   font-size: 0.9rem;
@@ -361,6 +374,8 @@
   background: #d1fae5;
   padding: 0.2rem 0.625rem;
   border-radius: 6px;
+  max-width: 100%;
+  word-break: break-all;
 }
 
 .credential-note {
@@ -498,10 +513,6 @@
     flex-wrap: wrap;
   }
 
-  .admin-info {
-    min-width: 0;
-  }
-
   .admin-info span {
     word-break: break-word;
   }
@@ -510,10 +521,5 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
-  }
-
-  .credential-valeur {
-    max-width: 100%;
-    word-break: break-all;
   }
 }

@@ -7,7 +7,7 @@ import {
   EtablissementFinancierCreate,
   ApiKeyGeneree,
   StatutEtablissement
-} from './etablissement-financier.model';
+} from '../../super-admin/etablissements-financiers/etablissement-financier.model';
 
 @Injectable({ providedIn: 'root' })
 export class EtablissementFinancierService {

@@ -154,6 +154,8 @@
 .main {
   margin-left: 260px;
   flex: 1;
+  min-width: 0; /* ✅ empêche .main de forcer .layout à déborder si son
+    contenu (topbar, content) refuse de rétrécir */
   display: flex;
   flex-direction: column;
 }
@@ -177,11 +179,16 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   color: #9ca3af;
+  min-width: 0; /* ✅ */
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .breadcrumb span:last-child {
   color: #1a1a2e;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-bar {
@@ -192,7 +199,12 @@
   border: 1px solid #e8ecf0;
   border-radius: 10px;
   padding: 0.5rem 1rem;
+  /* ✅ Fix : width fixe (280px) empêchait la barre de rétrécir sur un
+     écran étroit, même si Flexbox aurait dû lui permettre — min-width:0
+     est nécessaire en plus de flex-shrink pour que ça marche vraiment. */
   width: 280px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .search-bar input {
@@ -202,17 +214,20 @@
   font-size: 0.875rem;
   color: #6b7280;
   width: 100%;
+  min-width: 0; /* ✅ un <input> a un min-width navigateur non nul par défaut */
 }
 
 .search-icon {
   font-size: 0.875rem;
   color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0; /* ✅ les boutons ne doivent jamais rétrécir/se déformer */
 }
 
 .btn-notif {

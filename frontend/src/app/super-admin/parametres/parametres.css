@@ -42,6 +42,14 @@
 .section-icon.securite { background: #fef3c7; }
 .section-icon.securite .material-icons { color: #f59e0b; }
 
+/* ✅ Fix : le bloc titre+description (h2 + p) à côté de .section-icon
+   n'avait pas de min-width:0 — même piège que .identite-info/
+   .carte-detail-header déjà corrigés ailleurs cette session. */
+.section-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
 .section-header h2 { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; }
 .section-header p { font-size: 0.8rem; color: #9ca3af; margin-top: 0.125rem; }
 
@@ -55,9 +63,9 @@
   margin-bottom: 1.5rem;
 }
 
-.readonly-item { display: flex; flex-direction: column; gap: 0.2rem; }
+.readonly-item { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 .readonly-label { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; }
-.readonly-value { font-size: 0.9rem; font-weight: 600; color: #1a1a2e; }
+.readonly-value { font-size: 0.9rem; font-weight: 600; color: #1a1a2e; overflow-wrap: break-word; }
 
 .login-badge {
   background: #eff6ff;

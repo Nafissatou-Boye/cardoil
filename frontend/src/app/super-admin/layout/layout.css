@@ -164,6 +164,7 @@
 .main {
   margin-left: 260px;
   flex: 1;
+  min-width: 0; /* ✅ même correctif que layout.css (Admin Compagnie) */
   display: flex;
   flex-direction: column;
 }
@@ -187,11 +188,16 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   color: #9ca3af;
+  min-width: 0; /* ✅ */
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .breadcrumb span:last-child {
   color: #1a1a2e;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-bar {
@@ -202,7 +208,11 @@
   border: 1px solid #e8ecf0;
   border-radius: 10px;
   padding: 0.5rem 1rem;
+  /* ✅ Fix : width fixe (280px) empêchait la barre de rétrécir sur un
+     écran étroit — même correctif que layout.css. */
   width: 280px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .search-bar input {
@@ -212,17 +222,20 @@
   font-size: 0.875rem;
   color: #6b7280;
   width: 100%;
+  min-width: 0;
 }
 
 .search-icon {
   font-size: 0.875rem;
   color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0; /* ✅ les boutons ne doivent jamais rétrécir/se déformer */
 }
 
 .btn-notif {
@@ -278,6 +291,36 @@
   pointer-events: none;
 }
 
+/* ===== MENU MOBILE — masqué par défaut sur desktop/tablette ===== */
+.btn-menu-mobile {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #e8ecf0;
+  background: #f5f6fa;
+  color: #6b7280;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.btn-fermer-mobile {
+  display: none;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0.25rem;
+}
+
+.sidebar-backdrop {
+  display: none;
+}
+
 /* ===== RESPONSIVE ===== */
 
 /* Tablette : sidebar réduite en icônes seules */
@@ -323,14 +366,79 @@
   }
 }
 
-/* Mobile : sidebar cachée, topbar allégée */
+/* Mobile : la sidebar devient un tiroir hors-écran par défaut, ouvert via
+   le bouton hamburger, fermé au clic sur le fond d'écran ou à chaque
+   navigation (voir layout.ts). Remplace l'ancien "display: none" qui
+   coupait tout accès à la navigation sans rien pour la remplacer — un
+   Super Admin sur mobile n'avait auparavant aucun moyen de changer de
+   page.
+   ⚠️ Comme les media queries max-width s'empilent, les règles du palier
+   1024px (icônes seules) restent actives ici : chaque réduction
+   (logo-text caché, labels cachés, badge repositionné) doit être
+   explicitement rétablie pour que le tiroir affiche la sidebar complète,
+   pas le mode compact tablette. */
 @media (max-width: 768px) {
   .sidebar {
-    display: none;
+    display: flex;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 60;
+    box-shadow: none;
+  }
+
+  .sidebar.sidebar-ouvert {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+  }
+
+  /* ✅ Rétablit l'affichage complet du logo, annule le mode compact du
+     palier 1024px (padding réduit + centré). */
+  .sidebar-logo {
+    padding: 0 1.5rem 2rem;
+    justify-content: flex-start;
+  }
+
+  .logo-text {
+    display: block;
+  }
+
+  /* ✅ Rétablit les labels et l'alignement normal des liens de nav. */
+  .nav-item {
+    justify-content: flex-start;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .nav-item span:not(.nav-icon) {
+    display: inline;
+  }
+
+  .nav-badge {
+    position: static;
+  }
+
+  .user-info {
+    display: block;
+  }
+
+  .btn-fermer-mobile {
+    display: block;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 46, 0.45);
+    z-index: 55;
   }
 
   .main {
     margin-left: 0;
+  }
+
+  .btn-menu-mobile {
+    display: flex;
   }
 
   .search-bar {

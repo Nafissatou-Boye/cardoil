@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { EtablissementFinancierService } from './etablissement-financier.service';
+import { EtablissementFinancierService } from '../../core/services/etablissement-financier.service';
 import { LiaisonService } from './liaison.service';
 import {
   EtablissementFinancier,

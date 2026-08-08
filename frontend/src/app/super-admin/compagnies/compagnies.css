@@ -67,6 +67,7 @@
 
 table {
   width: 100%;
+  min-width: 640px; /* cohérence avec les autres tableaux déjà corrigés cette session — garantit que les colonnes ne se compressent pas illisiblement avant le scroll (déjà fonctionnel ici grâce à overflow-x: auto) */
   border-collapse: collapse;
 }
 

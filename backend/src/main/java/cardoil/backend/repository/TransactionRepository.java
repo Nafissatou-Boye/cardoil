@@ -63,4 +63,7 @@ long countByStationIdAndDateTransactionBetweenAndStatut(
     @Query("SELECT COALESCE(SUM(t.montant), 0) FROM Transaction t " +
            "WHERE t.statut = cardoil.backend.entity.StatutTransaction.REUSSIE")
     BigDecimal sumCaGlobal();
+
+    List<Transaction> findByClient_Entreprise_IdAndDateTransactionBetweenOrderByDateTransactionDesc(
+        Long entrepriseId, LocalDateTime debut, LocalDateTime fin);
 }

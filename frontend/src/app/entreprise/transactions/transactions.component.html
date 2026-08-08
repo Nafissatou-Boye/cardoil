@@ -1,0 +1,57 @@
+<div class="page-header">
+  <div>
+    <h1>Transactions</h1>
+    <p>Historique des transactions de vos employés</p>
+  </div>
+  <div class="filtres">
+    <div class="period-selector">
+      <button *ngFor="let p of periodes"
+              class="period-btn"
+              [class.active]="periodeActive === p"
+              (click)="changerPeriode(p)">{{ p }}</button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="chargement" class="chargement">Chargement des transactions...</div>
+
+<div *ngIf="erreur" class="erreur-globale">
+  <span class="material-icons">error_outline</span>
+  {{ erreur }}
+</div>
+
+<div *ngIf="!chargement && !erreur && transactions.length === 0" class="empty-state">
+  <div class="empty-icon">📭</div>
+  <p>Aucune transaction sur cette période</p>
+</div>
+
+<div *ngIf="!chargement && transactions.length > 0" class="section-card">
+  <div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Montant</th>
+        <th>Employé</th>
+        <th>Station</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of transactions">
+        <td class="date-cell">{{ t.dateTransaction }}</td>
+        <td>{{ getTypeLabel(t.type) }}</td>
+        <td class="montant-cell">{{ formatMontant(t.montant) }}</td>
+        <td>{{ t.employeNom }}</td>
+        <td>{{ t.station }}</td>
+        <td>
+          <span class="statut-badge" [ngClass]="getStatutClass(t.statut)">
+            {{ t.statut }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>

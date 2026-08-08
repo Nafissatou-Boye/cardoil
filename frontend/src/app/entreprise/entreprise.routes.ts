@@ -44,6 +44,13 @@ export const ENTREPRISE_ROUTES: Routes = [
         data: { title: 'Détail Utilisateur' }
       },
       {
+
+        path: 'transactions',
+        loadComponent: () =>
+          import('./transactions/transactions.component').then(m => m.TransactionsComponent),
+        data: { title: 'Transactions' }
+      },
+      {
         path: 'rapports',
         loadComponent: () =>
           import('./rapports/rapports').then(m => m.RapportsComponent),

@@ -300,8 +300,12 @@
   flex-shrink: 0;
 }
 
+/* ✅ Fix : min-width:0 manquant — même piège Flexbox déjà corrigé dans
+   entreprises.css et cartes.component.css. Sans ça, un nom d'admin ou de
+   rôle long pouvait forcer .admin-card à déborder sur petit écran. */
 .admin-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -338,6 +342,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid #d1fae5;
 }
@@ -348,8 +353,11 @@
   font-size: 0.8rem;
   color: #6b7280;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
+/* ✅ Fix : même piège que entreprises.css — un mot de passe temporaire
+   alphanumérique long pouvait déborder de .credential-item. */
 .credential-valeur {
   font-family: monospace;
   font-size: 0.9rem;
@@ -358,6 +366,8 @@
   background: #d1fae5;
   padding: 0.2rem 0.625rem;
   border-radius: 6px;
+  max-width: 100%;
+  word-break: break-all;
 }
 
 .credential-note {
@@ -417,7 +427,58 @@
 .btn-danger:hover:not(:disabled) { opacity: 0.9; }
 .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ===== RESPONSIVE ===== */
+
+/* ✅ Nouveau — même ajout que cartes.component.css : aucune adaptation du
+   modal n'existait avant 600px. */
+@media (max-width: 768px) {
+  .modal {
+    max-width: 100%;
+    width: calc(100% - 2rem);
+  }
+}
+
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
   .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.25rem;
+    width: calc(100% - 1.5rem);
+    border-radius: 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary,
+  .modal-actions .btn-danger {
+    width: 100%;
+  }
+
+  .entreprise-card {
+    padding: 1.25rem;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+  }
+
+  .admin-card {
+    flex-wrap: wrap;
+  }
+
+  .admin-info span {
+    word-break: break-word;
+  }
+
+  .credential-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }

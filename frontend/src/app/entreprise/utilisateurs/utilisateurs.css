@@ -5,6 +5,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
@@ -16,6 +18,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap; /* ✅ plusieurs boutons de filtre ne débordent plus sur petit écran */
 }
 
 .filtre-btn {
@@ -28,6 +31,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .filtre-btn:hover { background: #eff6ff; border-color: #bfdbfe; color: #3b82f6; }
@@ -38,15 +42,25 @@
   color: #fff;
 }
 
+/* ✅ Fix : overflow: hidden empêchait tout défilement — sur petit écran,
+   les colonnes qui dépassaient la largeur du container n'étaient pas
+   juste "débordantes", elles étaient purement invisibles (coupées),
+   sans aucun moyen d'y accéder. overflow-x: auto permet de faire défiler
+   le tableau horizontalement ; les coins arrondis restent intacts,
+   border-radius s'applique au container lui-même, pas au contenu qui
+   défile dedans. */
 .table-container {
   background: #fff;
   border: 1px solid #e8ecf0;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tableau-utilisateurs {
   width: 100%;
+  min-width: 560px; /* ✅ garantit que les colonnes ne se compressent pas illisiblement avant de déclencher le scroll horizontal */
   border-collapse: collapse;
 }
 
@@ -63,6 +77,7 @@
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .tableau-utilisateurs td {
@@ -100,6 +115,15 @@
   flex-shrink: 0;
 }
 
+/* ✅ Fix : même piège que utilisateur-detail.component.css — le bloc
+   texte (strong + .sous-texte) à côté de .avatar-mini n'avait pas de
+   min-width:0. Moins critique ici grâce au scroll horizontal ajouté
+   ci-dessus, mais garde le texte propre plutôt que de dépendre
+   uniquement du défilement. */
+.cellule-nom > div {
+  min-width: 0;
+}
+
 .cellule-nom strong {
   display: block;
   font-size: 0.875rem;
@@ -117,6 +141,7 @@
   font-weight: 700;
   padding: 0.2rem 0.625rem;
   border-radius: 6px;
+  white-space: nowrap;
 }
 
 .role-badge.employe { background: #eff6ff; color: #3b82f6; }
@@ -147,5 +172,3 @@
 .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
 .empty-state p { font-size: 1rem; font-weight: 600; color: #1a1a2e; margin-bottom: 0.25rem; }
 .empty-state span { font-size: 0.825rem; color: #9ca3af; }
-
-
