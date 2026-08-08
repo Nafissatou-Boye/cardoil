@@ -321,6 +321,34 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
+  
+    private StatsJourResponse calculerStats(Utilisateur operateur, Station station,
+                                             LocalDateTime debut, LocalDateTime fin) {
+        BigDecimal total;
+        long totalCount;
+        long successCount;
+
+        if (operateur.getRole() == Role.POMPISTE) {
+            total = transactionRepository.sumCaByStationAndOperateurAndPeriode(
+                    station.getId(), operateur.getId(), debut, fin);
+            totalCount = transactionRepository.countByStationIdAndOperateurIdAndTypeNotAndDateTransactionBetween(
+                    station.getId(), operateur.getId(), TypeTransaction.RECHARGE, debut, fin);
+            successCount = transactionRepository.countByStationIdAndOperateurIdAndTypeNotAndDateTransactionBetweenAndStatut(
+                    station.getId(), operateur.getId(), TypeTransaction.RECHARGE, debut, fin, StatutTransaction.REUSSIE);
+        } else {
+            total = transactionRepository.sumCaByStationAndPeriode(station.getId(), debut, fin);
+            totalCount = transactionRepository.countByStationIdAndDateTransactionBetween(station.getId(), debut, fin);
+            successCount = transactionRepository.countByStationIdAndDateTransactionBetweenAndStatut(
+                    station.getId(), debut, fin, StatutTransaction.REUSSIE);
+        }
+
+        return StatsJourResponse.builder()
+                .totalAmount(total != null ? total : BigDecimal.ZERO)
+                .totalCount(totalCount)
+                .successCount(successCount)
+                .build();
+    }
+
     @Override
     public StatsJourResponse getStatsDuJour(String loginOperateur) {
         Utilisateur operateur = utilisateurRepository.findByLogin(loginOperateur)
@@ -330,16 +358,7 @@ public class TransactionServiceImpl implements TransactionService {
         LocalDateTime debut = LocalDate.now().atStartOfDay();
         LocalDateTime fin = LocalDateTime.now();
 
-        BigDecimal total = transactionRepository.sumCaByStationAndPeriode(station.getId(), debut, fin);
-        long totalCount = transactionRepository.countByStationIdAndDateTransactionBetween(station.getId(), debut, fin);
-        long successCount = transactionRepository.countByStationIdAndDateTransactionBetweenAndStatut(
-                station.getId(), debut, fin, StatutTransaction.REUSSIE);
-
-        return StatsJourResponse.builder()
-                .totalAmount(total != null ? total : BigDecimal.ZERO)
-                .totalCount(totalCount)
-                .successCount(successCount)
-                .build();
+        return calculerStats(operateur, station, debut, fin);
     }
 
     @Override
@@ -754,28 +773,17 @@ return StatutTransactionResponse.builder()
         return "TXN" + horodatageCompact + suffixe;
     }
 
-    // TransactionServiceImpl.java — méthode à ajouter
-@Override
-public StatsJourResponse getStatsPeriode(String loginOperateur, LocalDate debut, LocalDate fin) {
-    Utilisateur operateur = utilisateurRepository.findByLogin(loginOperateur)
-            .orElseThrow(() -> new EntityNotFoundException("Opérateur non trouvé"));
-    Station station = resolveStation(operateur);
+    @Override
+    public StatsJourResponse getStatsPeriode(String loginOperateur, LocalDate debut, LocalDate fin) {
+        Utilisateur operateur = utilisateurRepository.findByLogin(loginOperateur)
+                .orElseThrow(() -> new EntityNotFoundException("Opérateur non trouvé"));
+        Station station = resolveStation(operateur);
 
-    LocalDateTime debutDt = debut.atStartOfDay();
-    LocalDateTime finDt = fin.atTime(23, 59, 59);
+        LocalDateTime debutDt = debut.atStartOfDay();
+        LocalDateTime finDt = fin.atTime(23, 59, 59);
 
-    BigDecimal total = transactionRepository.sumCaByStationAndPeriode(station.getId(), debutDt, finDt);
-    long totalCount = transactionRepository.countByStationIdAndDateTransactionBetween(station.getId(), debutDt, finDt);
-    long successCount = transactionRepository.countByStationIdAndDateTransactionBetweenAndStatut(
-            station.getId(), debutDt, finDt, StatutTransaction.REUSSIE);
-
-    return StatsJourResponse.builder()
-            .totalAmount(total != null ? total : BigDecimal.ZERO)
-            .totalCount(totalCount)
-            .successCount(successCount)
-            .build();
-            
-}
+        return calculerStats(operateur, station, debutDt, finDt);
+    }
 
 
 @Override

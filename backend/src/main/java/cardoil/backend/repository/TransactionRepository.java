@@ -39,9 +39,26 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
                                          @Param("debut") LocalDateTime debut,
                                          @Param("fin") LocalDateTime fin);
 
+ 
+    @Query("SELECT COALESCE(SUM(t.montant), 0) FROM Transaction t " +
+           "WHERE t.station.id = :stationId " +
+           "AND t.operateur.id = :operateurId " +
+           "AND t.type <> cardoil.backend.entity.TypeTransaction.RECHARGE " +
+           "AND t.dateTransaction BETWEEN :debut AND :fin " +
+           "AND t.statut = cardoil.backend.entity.StatutTransaction.REUSSIE")
+    BigDecimal sumCaByStationAndOperateurAndPeriode(@Param("stationId") Long stationId,
+                                                      @Param("operateurId") Long operateurId,
+                                                      @Param("debut") LocalDateTime debut,
+                                                      @Param("fin") LocalDateTime fin);
 
     long countByStationIdAndDateTransactionBetween(
             Long stationId, LocalDateTime debut, LocalDateTime fin);
+
+    // ✅ Nouveau — même rôle que sumCaByStationAndOperateurAndPeriode
+    // ci-dessus, pour le compte total de transactions (pas juste le CA).
+    long countByStationIdAndOperateurIdAndTypeNotAndDateTransactionBetween(
+            Long stationId, Long operateurId, TypeTransaction type,
+            LocalDateTime debut, LocalDateTime fin);
 
     List<Transaction> findByStation_Compagnie_IdAndDateTransactionBetweenOrderByDateTransactionDesc(
             Long compagnieId, LocalDateTime debut, LocalDateTime fin);
@@ -53,6 +70,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
 long countByStationIdAndDateTransactionBetweenAndStatut(
         Long stationId, LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
+
+  
+    long countByStationIdAndOperateurIdAndTypeNotAndDateTransactionBetweenAndStatut(
+            Long stationId, Long operateurId, TypeTransaction type,
+            LocalDateTime debut, LocalDateTime fin, StatutTransaction statut);
 
         boolean existsByReference(String reference);
 
